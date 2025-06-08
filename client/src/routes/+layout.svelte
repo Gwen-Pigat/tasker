@@ -1,7 +1,8 @@
 <script>
-
     import { fade } from 'svelte/transition';
     import { error, user } from '$lib'
+
+    let { children,data } = $props()
 
     $effect(() => {
         if($error !== ""){
@@ -11,11 +12,6 @@
         }
     })
 
-    let data = $props()
-    console.log(data)
-    if(data.form && !data.form.error){
-        user.set(data.form) 
-    }
     
 </script>
 
@@ -23,7 +19,7 @@
     <div class="error" transition:fade={{duration:500}}>{$error}</div>
 {/if}
 
-<slot />
+{@render children?.()}
 
 
 <style>

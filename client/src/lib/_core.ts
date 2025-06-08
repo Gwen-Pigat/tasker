@@ -1,10 +1,11 @@
-import { Preferences } from '@capacitor/preferences'
 import { user,error,API_URL } from '$lib'
+import { get } from 'svelte/store'
 
+
+console.log(get(user))
 
 export async function resetUser(){
     user.set({})
-    await Preferences.clear()
 }
 
 export async function fetchAPI(
@@ -14,6 +15,7 @@ export async function fetchAPI(
 ):Promise<any>{
     let result  
     const headers = new Headers()
+    console.log(user)
     if(user.token !== undefined){
         headers.append("Authorization", "Bearer "+user.token)
     }

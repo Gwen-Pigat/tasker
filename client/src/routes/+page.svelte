@@ -1,42 +1,23 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
-    import { fetchAPI } from '$lib/_core';
     import { user } from '$lib'
     import Tasks from '$lib/components/Tasks.svelte';
     import User from '$lib/components/User.svelte';
     import Loader from '$lib/components/Loader.svelte';
+    import { onMount } from 'svelte';
 
     let data = $props()
-    console.log(data.user)
-    if(data.user !== undefined){
-        user.set(data.user) 
-    }
-
-    async function loadUser(){
-        const data = await fetchAPI("/user","GET")
-        userConnect = true
-        if(data.error){
-            return
-        }
-        user.set(data)
-    }
-
-    let userConnect:boolean = $state(false)
 
     onMount(() => {
-        loadUser()
+        user.set(data.data.user)
+        console.log(data.form)
     })
 
 </script>
 
 <Loader />
 <img class="logo" src="/images/logo.svg" alt="Tasker Logo" />
-{#if !userConnect}
-    <progress></progress>
+{#if !$user}
+    <User result={data.form} />
 {:else}
-    {#if !$user.id}
-        <User />
-    {:else}
-        <Tasks />
-    {/if}
+    <Tasks />
 {/if}

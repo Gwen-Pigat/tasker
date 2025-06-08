@@ -5,19 +5,21 @@ import (
 	"os"
 )
 
+var DB *sql.DB
+
 func ConnectDB() (*sql.DB, error) {
-	db, err := sql.Open("mysql", os.Getenv("DB_URI"))
+	DB, err := sql.Open("mysql", os.Getenv("DB_URI"))
 	if err != nil {
 		return nil, err
 	}
-	if err := db.Ping(); err != nil {
+	if err := DB.Ping(); err != nil {
 		return nil, err
 	}
-	err = SetupDB(db)
+	err = SetupDB(DB)
 	if err != nil {
 		return nil, err
 	}
-	return db, nil
+	return DB, nil
 }
 
 func SetupDB(db *sql.DB) error {

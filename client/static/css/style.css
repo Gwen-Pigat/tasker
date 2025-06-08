@@ -15,18 +15,18 @@
     --pico-primary-inverse: #fff;
 }
 
-button.action{
+a.action, button.action{
     position: absolute;
     top:0;
     right: 15px;
 }
 
-button{
+a, button{
     display: flex;
     align-items: center;
     justify-content: center;
 }
-button svg{
+a svg, button svg{
     margin-right: 0.5rem;
     width: 15px;
     height: 15px;
