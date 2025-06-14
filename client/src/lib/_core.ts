@@ -1,8 +1,5 @@
-import { user,error,API_URL } from '$lib'
+import { user,API_URL } from '$lib'
 import { get } from 'svelte/store'
-
-
-console.log(get(user))
 
 export async function resetUser(){
     user.set({})
