@@ -7,4 +7,4 @@ export const error:Writable<string> = writable("")
 
 
 //export const API_URL = "https://tasker-back-production.up.railway.app"
-export const API_URL = "http://localhost:3000"
+export const API_URL = "https://tasker-api.orizenh.com"
