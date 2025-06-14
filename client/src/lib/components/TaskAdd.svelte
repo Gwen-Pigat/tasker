@@ -9,7 +9,11 @@
     async function submitTask(data:any):Promise<void>{
         data.preventDefault()
         isSubmit = true
-        const response = await fetchAPI("/tasks", "POST", new FormData(form))
+        const response = await fetchAPI(
+            "/tasks", 
+            "POST", 
+            new FormData(form)
+        )
         isSubmit = false
         if(response.error){
             console.error(response.error)

@@ -14,10 +14,10 @@ export async function fetchAPI(
     data?:any
 ):Promise<any>{
     let result  
-    const headers = new Headers()
-    console.log(user)
-    if(user.token !== undefined){
-        headers.append("Authorization", "Bearer "+user.token)
+    const headers = new Headers()   
+    const currentUser:any = get(user)
+    if(currentUser.token !== undefined){
+        headers.append("Authorization", "Bearer "+currentUser.token)
     }
     const options:any = {
         method: method,
@@ -27,7 +27,6 @@ export async function fetchAPI(
     if(method === "POST" && data){
         options.body = data
     }
-
     try{
         const response = await fetch(API_URL+path, options)
         console.log(API_URL+path, options)

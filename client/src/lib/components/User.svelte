@@ -1,18 +1,8 @@
 <script lang="ts">
-    import { error } from "$lib";
-    import { onMount } from "svelte";
 
     let formView = $state("default")
 
-    let { result } = $props()
-
     let username:string = $state("")
-
-    onMount(() => {
-        if(result){
-            error.set(result.error)
-        }
-    })
 
 </script>
 
