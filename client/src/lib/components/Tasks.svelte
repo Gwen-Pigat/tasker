@@ -1,6 +1,5 @@
 <script lang="ts">
     import { tasks,user } from "$lib"
-    import { onMount } from "svelte";
     import Task from "./Task.svelte";
     import TaskAdd from "./TaskAdd.svelte";
     import { fetchAPI } from "$lib/_core";
@@ -18,11 +17,7 @@
         tasks.set(dataFetch)
     }
 
-    onMount(() => {
-        setTimeout(function(){
-            loadTasks()
-        },1000)
-    })
+    loadTasks()
 
 </script>
 

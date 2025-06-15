@@ -6,6 +6,7 @@
     import { onMount } from 'svelte'
 
     let { data,form } = $props()
+    user.set(data.user)
 
     onMount(() => {
         if(form !== null
@@ -13,7 +14,6 @@
         ){
             error.set(form.error)
         }
-        user.set(data.user)
     })
 
 </script>

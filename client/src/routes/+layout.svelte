@@ -1,8 +1,8 @@
 <script>
     import { fade } from 'svelte/transition';
-    import { error,user } from '$lib'
+    import { error } from '$lib'
 
-    let { children, data } = $props()
+    let { children } = $props()
 
     $effect(() => {
         if($error !== ""){
