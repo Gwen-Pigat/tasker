@@ -36,17 +36,14 @@
             return
         }
         dateTo = new Date(task.dateTo)
-        dateToFormat = dateTo.getDate()+"/"+dateTo.getMonth()+"/"+dateTo.getFullYear()+" "+dateTo.getHours()+":"+dateTo.getMinutes()+":"+dateTo.getSeconds()
+        dateToFormat = convertNumber(dateTo.getDate())+"/"+convertNumber(dateTo.getMonth())+"/"+dateTo.getFullYear()+" "+convertNumber(dateTo.getHours())+":"+convertNumber(dateTo.getMinutes())+":"+convertNumber(dateTo.getSeconds())
         const diffMs = dateTo.getTime() - dateAdd.getTime()
         const diffSecs  = Math.floor(diffMs / 1000)
         const diffMinutes = Math.floor(diffSecs / 60)
         const hours = Math.floor(diffMinutes / 60)
-
-
         const minutes = diffMinutes % 60
         const seconds = diffSecs % 60
 
-        console.log(seconds)
 
         diffLabel = "Done in "
         if(hours > 0){
@@ -68,9 +65,19 @@
     let dateAdd:any
     let dateAddFormat:any = $state("")
 
+    function convertNumber(number:number, addTo:boolean = false):string
+    {
+        if(addTo) number++
+        let numberVal = String(number)
+        if(number < 10){
+            numberVal = "0"+number
+        }
+        return numberVal
+    }
+
     $effect(() => {
         dateAdd = new Date(task.dateAdd)
-        dateAddFormat = dateAdd.getDate()+"/"+dateAdd.getMonth()+"/"+dateAdd.getFullYear()+" "+dateAdd.getHours()+":"+dateAdd.getMinutes()+":"+dateAdd.getSeconds()
+        dateAddFormat = convertNumber(dateAdd.getDate())+"/"+convertNumber(dateAdd.getMonth(), true)+"/"+dateAdd.getFullYear()+" "+convertNumber(dateAdd.getHours())+":"+convertNumber(dateAdd.getMinutes())+":"+convertNumber(dateAdd.getSeconds())
     })
 
     onMount(() => {
