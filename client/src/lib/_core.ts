@@ -13,7 +13,8 @@ export async function fetchAPI(
     let result  
     const headers = new Headers()   
     const currentUser:any = get(user)
-    if(currentUser.token !== undefined){
+    if(currentUser
+    && currentUser.token){
         headers.append("Authorization", "Bearer "+currentUser.token)
     }
     const options:any = {
