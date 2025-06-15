@@ -26,7 +26,7 @@ export const actions: Actions = {
             }
         }
         cookies.set("user", JSON.stringify(result), {path: "/"})
-        return result
+        throw redirect(302, "/")
     },
     logout: async({cookies}) => {
         cookies.delete("user", {path: "/"})
