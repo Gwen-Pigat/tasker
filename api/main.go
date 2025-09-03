@@ -50,6 +50,7 @@ func main() {
 		Handle(r, http.MethodGet, "/user", user.GetUser)
 		Handle(r, http.MethodGet, "/tasks", task.GetTasks)
 		Handle(r, http.MethodPost, "/tasks", task.CreateTask)
+		Handle(r, http.MethodPut, "/tasks", task.CreateTask)
 		Handle(r, http.MethodPatch, "/tasks/{id}", task.PatchTask)
 		Handle(r, http.MethodDelete, "/tasks/{id}", task.DeleteTask)
 	})

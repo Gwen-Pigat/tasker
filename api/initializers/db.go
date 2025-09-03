@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS ` + "`task`" + ` (
 CREATE TABLE IF NOT EXISTS ` + "`user`" + ` (
   ` + "`id`" + ` int NOT NULL AUTO_INCREMENT,
   ` + "`username`" + ` varchar(255) NOT NULL,
+  ` + "`password`" + ` varchar(255) NOT NULL,
   ` + "`date_add`" + ` datetime DEFAULT NULL,
   ` + "`is_active`" + ` tinyint(1) NOT NULL,
   ` + "`token`" + ` varchar(255) NOT NULL,

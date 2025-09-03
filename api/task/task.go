@@ -107,6 +107,67 @@ func GetTask(wrapper *initializers.Wrapper) {
 	}, 200)
 }
 
+func PutTask(wrapper *initializers.Wrapper) {
+	rows, err := initializers.DB.Query("SELECT "+taskSetup["payload"]+" FROM "+taskSetup["table"]+" WHERE id=? ORDER BY date_add DESC", chi.URLParam(wrapper.Request, "id"))
+	if err != nil {
+		wrapper.Error(err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := wrapper.WrapData("title"); err != nil {
+		wrapper.Error(err.Error())
+		return
+	}
+	task := Task{
+		Title:   wrapper.Data["title"].(string),
+		IsDone:  false,
+		RefUser: wrapper.ReturnUser(),
+		DateAdd: stringPtr(wrapper.Data["dateAdd"].(string)),
+	}
+	smtp, err := initializers.DB.Prepare("INSERT INTO " + taskSetup["table"] + "(title,date_add,is_done,ref_user) VALUES(?,?,?,?)")
+	if err != nil {
+		wrapper.Error(err.Error(), 400)
+		return
+	}
+	defer smtp.Close()
+	_, err = smtp.Exec(task.Title, task.DateAdd, task.IsDone, task.RefUser)
+	if err != nil {
+		wrapper.Error(err.Error(), 400)
+		return
+	}
+
+	task.DateTo = nil
+	if !task.IsDone {
+		task.DateTo = stringPtr(time.Now().UTC().Truncate(time.Second).Format(initializers.Format))
+	}
+	task.IsDone = !task.IsDone
+	rows, err = initializers.DB.Query(
+		"UPDATE "+taskSetup["table"]+" SET is_done = ?,date_to=? WHERE id=? AND ref_user=?",
+		task.IsDone, task.DateTo, chi.URLParam(wrapper.Request, "id"), wrapper.ReturnUser(),
+	)
+	if err != nil {
+		wrapper.Error(err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer rows.Close()
+
+	if task.DateTo != nil {
+		*task.DateTo, err = wrapFormat(task.DateTo)
+		if err != nil {
+			wrapper.Error("Error parsing dateTo inside PATCH : " + err.Error())
+			return
+		}
+	}
+	*task.DateAdd, err = wrapFormat(task.DateAdd)
+	if err != nil {
+		wrapper.Error("Error parsing dateTo inside PATCH : " + err.Error())
+		return
+	}
+	wrapper.Render(map[string]any{
+		"message": "Update successfull",
+		"result":  task,
+	})
+}
+
 func PatchTask(wrapper *initializers.Wrapper) {
 	rows, err := initializers.DB.Query("SELECT "+taskSetup["payload"]+" FROM "+taskSetup["table"]+" WHERE id=? ORDER BY date_add DESC", chi.URLParam(wrapper.Request, "id"))
 	if err != nil {
