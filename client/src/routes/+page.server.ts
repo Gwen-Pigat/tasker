@@ -22,7 +22,20 @@ export const actions: Actions = {
         const result = await fetchAPI("/user/connect", "POST", data)
         if(result.error){
             return {
-                error: result.error
+                "error": result.error,
+                "view": "login"
+            }
+        }
+        cookies.set("user", JSON.stringify(result), {path: "/"})
+        throw redirect(302, "/")
+    },
+    register: async ({cookies, request}) =>{
+        const data = await request.formData()
+        const result = await fetchAPI("/user", "POST", data)
+        if(result.error){
+            return {
+                "error": result.error,
+                "view": "register"
             }
         }
         cookies.set("user", JSON.stringify(result), {path: "/"})

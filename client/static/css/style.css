@@ -35,7 +35,7 @@ a svg, button svg{
 img.logo{
     display: flex;
     max-width: 550px;
-    margin: 2rem auto;
+    margin: 2rem auto 1rem auto;
     width: -webkit-fill-available;
 }
 
@@ -43,14 +43,25 @@ img.logo{
     .container {
         max-width: 768px;
     }
+    main{
+        margin-top: 1rem;
+    }
 }
 
 h1{
     text-align: center;
     color: var(--pico-primary);
+    margin-top: 1rem;
 }
 
 main{
-    margin-top: 4rem;
     position: relative;
+}
+
+.actions{
+    position: absolute;
+    right: 15px;
+    top: 15px;
+    display: flex;
+    align-items: center;
 }

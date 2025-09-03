@@ -8,11 +8,17 @@
     let { data,form } = $props()
     user.set(data.user)
 
+    let view: string = $state("login")
+
     onMount(() => {
         if(form !== null
-        && form.error
         ){
-            error.set(form.error)
+            if(form.error){
+                error.set(form.error)
+            }
+            if(form.view){
+                view = form.view
+            }
         }
     })
 
@@ -21,7 +27,7 @@
 <Loader />
 <img class="logo" src="/images/logo.svg" alt="Tasker Logo" />
 {#if !$user}
-    <User />
+    <User {view} />
 {:else}
     <Tasks />
 {/if}

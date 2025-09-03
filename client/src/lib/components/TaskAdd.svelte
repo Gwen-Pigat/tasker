@@ -26,6 +26,6 @@
 </script>
 
 <form id="setTask" method="POST" onsubmit={submitTask} bind:this={form}>
-    <input type="text" name="title" placeholder="Titre de la tâche" bind:value={title} />
-    <button type="submit" disabled={title === "" || isSubmit === true}>Valid</button>
+    <input type="text" name="title" placeholder="Task name" bind:value={title} />
+    <button type="submit" disabled={title === "" || isSubmit === true}>Add</button>
 </form>

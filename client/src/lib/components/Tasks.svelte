@@ -37,6 +37,10 @@
     }
 </style>
 
+<svelte:head>
+    <title>Tasker | Your tasks</title>
+</svelte:head>
+
 <h1>Welcome {$user.username}</h1>
 <TaskAdd />
 {#if $tasks.length > 0}

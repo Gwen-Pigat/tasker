@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { tasks } from "$lib";
+    
     import { fetchAPI } from "$lib/_core";
     import { onMount } from "svelte";
 
@@ -44,7 +44,6 @@
         const minutes = diffMinutes % 60
         const seconds = diffSecs % 60
 
-
         diffLabel = "Done in "
         if(hours > 0){
             diffLabel += hours+" hour"
@@ -65,6 +64,11 @@
     let dateAdd:any
     let dateAddFormat:any = $state("")
 
+    async function saveTask():Promise<void>
+    {
+        
+    }
+
     function convertNumber(number:number, addTo:boolean = false):string
     {
         if(addTo) number++
@@ -82,22 +86,38 @@
 
     onMount(() => {
         dateFormat()
+        console.log(task)
     })
+
+    let edit:boolean = $state(false)
 
 </script>
 
 <article>
-    <header>
-        {task.title} 
-        {#if task.isDone}({diffLabel}){/if}
-    </header>
-    Add on {dateAddFormat}
-    {#if task.dateTo !== null}<br />Done the {dateToFormat}{/if}
+    {#if !edit}
+        <header>
+            {task.title} 
+            {#if task.isDone}({diffLabel}){/if}
+        </header>
+        Add on {dateAddFormat}
+        {#if task.dateTo !== null}<br />Done the {dateToFormat}{/if}
+    {:else}
+        <header>
+            <input type="text" value={task.title} /> 
+        </header>
+        Add on <input type="datetime-local" value={task.dateAdd} /><br />
+        Finished on <input type="datetime-local" value={task.dateTo} />
+        <button class="primary" onclick={saveTask} style="width:100%;">Save</button>
+    {/if}
+
     <footer role="group">
         <button class="secondary" 
         onclick={patchTask} 
         disabled={isSubmit === true}>
             {#if task.dateTo}Cancel{:else}Finish{/if}
+        </button>
+        <button class="contrast" onclick={() => edit = !edit}>
+            {#if edit}Cancel{:else}Edit{/if}
         </button>
         <button class="outline secondary" 
         onclick={removeTask} 
