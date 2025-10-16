@@ -1,8 +1,10 @@
 <script>
     import { fade } from 'svelte/transition';
-    import { error } from '$lib'
+    import { error, url } from '$lib'
 
-    let { children } = $props()
+    let { children, data } = $props()
+    
+    url.set(data.apiURL)
 
     $effect(() => {
         if($error !== ""){

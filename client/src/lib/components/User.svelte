@@ -2,12 +2,12 @@
     import { onMount } from "svelte";
     import UserConnect from "./UserConnect.svelte";
     import UserRegister from "./UserRegister.svelte";
+    import { url } from "$lib";
 
 
     let username:string = $state("")
-
+    let password:string = $state("")
     let title:string = $state("")
-
     let input:undefined|HTMLInputElement = $state()
 
     let { view } = $props()
@@ -37,7 +37,7 @@
 </svelte:head>
 
 {#if view === "login"}
-    <UserConnect {view} {username} {title} />
+    <UserConnect bind:view {username} {password} {title} />
 {:else if view === "register"}
-    <UserRegister {view} {username} {title} />
+    <UserRegister bind:view {username} {password} {title} />
 {/if}
