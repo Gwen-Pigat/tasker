@@ -1,15 +1,18 @@
-import { user,API_URL } from '$lib'
+import { user,url } from '$lib'
 import { get } from 'svelte/store'
 
 export async function resetUser(){
     user.set({})
 }
 
+
+
 export async function fetchAPI(
     path: string, 
     method: string,
     data?:any
 ):Promise<any>{
+    const API_URL:string = get(url)
     let result  
     const headers = new Headers()   
     const currentUser:any = get(user)
