@@ -37,7 +37,7 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{os.Getenv("API_URL_PREPROD"), os.Getenv("API_URL_PROD")},
-		AllowedMethods:   []string{"GET", "POST", "PATCH", "OPTIONS", "DELETE"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "OPTIONS", "DELETE"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-type", "X-CSRF-Token"},
 		AllowCredentials: false,
 		MaxAge:           300,
@@ -50,7 +50,7 @@ func main() {
 		Handle(r, http.MethodGet, "/user", user.GetUser)
 		Handle(r, http.MethodGet, "/tasks", task.GetTasks)
 		Handle(r, http.MethodPost, "/tasks", task.CreateTask)
-		Handle(r, http.MethodPut, "/tasks", task.CreateTask)
+		Handle(r, http.MethodPut, "/tasks/{id}", task.PutTask)
 		Handle(r, http.MethodPatch, "/tasks/{id}", task.PatchTask)
 		Handle(r, http.MethodDelete, "/tasks/{id}", task.DeleteTask)
 	})
@@ -91,7 +91,7 @@ func CheckAuth(handler http.Handler) http.Handler {
 func Handle(r chi.Router, method string, path string, handler func(w *initializers.Wrapper)) {
 	r.MethodFunc(method, path, func(w http.ResponseWriter, r *http.Request) {
 		wrapper := NewWrapper(w, r)
-		if method == http.MethodPost {
+		if method == http.MethodPost || method == http.MethodPut {
 			errorMsg, errorCode := wrapper.HandlePOST(wrapper.Request)
 			if errorMsg != "" {
 				wrapper.Error(errorMsg, errorCode)
