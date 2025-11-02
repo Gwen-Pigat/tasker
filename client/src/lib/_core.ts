@@ -25,7 +25,7 @@ export async function fetchAPI(
         redirect: "follow",
         headers: headers
     }
-    if(method === "POST" && data){
+    if((method === "POST" || method === "PUT") && data){
         options.body = data
     }
     try{

@@ -36,7 +36,7 @@
             return
         }
         dateTo = new Date(task.dateTo)
-        dateToFormat = convertNumber(dateTo.getDate())+"/"+convertNumber(dateTo.getMonth())+"/"+dateTo.getFullYear()+" "+convertNumber(dateTo.getHours())+":"+convertNumber(dateTo.getMinutes())+":"+convertNumber(dateTo.getSeconds())
+        dateToFormat = convertNumber(dateTo.getDate())+"/"+convertNumber(dateTo.getMonth()+1)+"/"+dateTo.getFullYear()+" "+convertNumber(dateTo.getHours())+":"+convertNumber(dateTo.getMinutes())+":"+convertNumber(dateTo.getSeconds())
         const diffMs = dateTo.getTime() - dateAdd.getTime()
         const diffSecs  = Math.floor(diffMs / 1000)
         const diffMinutes = Math.floor(diffSecs / 60)
@@ -64,9 +64,19 @@
     let dateAdd:any
     let dateAddFormat:any = $state("")
 
+    let formPUT:undefined|HTMLFormElement = $state()
+
     async function saveTask():Promise<void>
     {
-        
+        isSubmit = true
+        const data = await fetchAPI(`/tasks/${task.id}`, "PUT", new FormData(formPUT))
+        isSubmit = false
+        if(data.error){
+            return
+        }
+        edit = false
+        task = data
+        dateFormat()
     }
 
     function convertNumber(number:number, addTo:boolean = false):string
@@ -102,12 +112,14 @@
         Add on {dateAddFormat}
         {#if task.dateTo !== null}<br />Done the {dateToFormat}{/if}
     {:else}
-        <header>
-            <input type="text" value={task.title} /> 
-        </header>
-        Add on <input type="datetime-local" value={task.dateAdd} /><br />
-        Finished on <input type="datetime-local" value={task.dateTo} />
-        <button class="primary" onclick={saveTask} style="width:100%;">Save</button>
+        <form onsubmit={saveTask} bind:this={formPUT}>
+            <header>
+                <input type="text" name="title" value={task.title} /> 
+            </header>
+            Add on <input type="datetime-local" step="1" name="dateAdd" value={task.dateAdd} /><br />
+            Finished on <input type="datetime-local" step="1" name="dateTo" value={task.dateTo} />
+            <button class="primary" style="width:100%;">Save</button>
+        </form>
     {/if}
 
     <footer role="group">
