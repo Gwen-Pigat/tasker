@@ -3,6 +3,7 @@ package task
 import (
 	"fmt"
 	"net/http"
+	"strings"
 	"tasker/initializers"
 	"time"
 
@@ -52,6 +53,77 @@ func CreateTask(wrapper *initializers.Wrapper) {
 		return
 	}
 	GetTasks(wrapper)
+}
+
+func PutTask(wrapper *initializers.Wrapper) {
+	rows, err := initializers.DB.Query("SELECT id,ref_user FROM "+taskSetup["table"]+" WHERE id=? ORDER BY date_add DESC", chi.URLParam(wrapper.Request, "id"))
+	if err != nil {
+		wrapper.Error(err.Error(), http.StatusInternalServerError)
+		return
+	}
+	task := Task{}
+	for rows.Next() {
+		if err := rows.Scan(&task.ID, &task.RefUser); err != nil {
+			wrapper.Error(err.Error(), http.StatusBadGateway)
+			return
+		}
+	}
+	keys := []string{
+		"title", "dateAdd",
+	}
+	for _, key := range keys {
+		if err := wrapper.WrapData(key); err != nil {
+			wrapper.Error(err.Error())
+			return
+		}
+		if key == "dateAdd" {
+			wrapper.Data["dateAdd"] = strings.ReplaceAll(wrapper.Data["dateAdd"].(string), "T", " ")
+		}
+	}
+	dateFromFormat, err := time.Parse(initializers.Format, wrapper.Data["dateAdd"].(string))
+	if err != nil {
+		wrapper.Error(fmt.Sprintf("Date add format is wrong : %v", err.Error()))
+		return
+	}
+	isDone := false
+	if dateToStr, ok := wrapper.Data["dateTo"].(string); ok && dateToStr != "" {
+		dateToFormat, err := time.Parse(initializers.Format, strings.ReplaceAll(dateToStr, "T", " "))
+		if err != nil {
+			wrapper.Error(fmt.Sprintf("Date to format is wrong : %v", err.Error()))
+			return
+		}
+		if !dateToFormat.After(dateFromFormat) {
+			wrapper.Error("You have to send a superior date for the finish")
+			return
+		}
+		isDone = true
+	}
+	task.Title = wrapper.Data["title"].(string)
+	task.IsDone = isDone
+	dateFromVal, ok := wrapper.Data["dateAdd"].(string)
+	if !ok || dateFromVal == "" {
+		wrapper.Error("You have to set a correct date add value")
+		return
+	}
+	task.DateAdd = &dateFromVal
+	if dateToVal, ok := wrapper.Data["dateTo"].(string); ok && dateToVal != "" {
+		dateToVal = strings.ReplaceAll(dateToVal, "T", " ")
+		task.DateTo = &dateToVal
+	}
+	rows, err = initializers.DB.Query(
+		"UPDATE "+taskSetup["table"]+" SET title=?,date_add=?,is_done=?,date_to=? WHERE id=?",
+		task.Title, task.DateAdd, task.IsDone, task.DateTo, chi.URLParam(wrapper.Request, "id"),
+	)
+	if err != nil {
+		wrapper.Error(err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer rows.Close()
+
+	wrapper.Render(map[string]any{
+		"data": task,
+	}, 200)
+
 }
 
 func GetTasks(wrapper *initializers.Wrapper) {
@@ -105,67 +177,6 @@ func GetTask(wrapper *initializers.Wrapper) {
 	wrapper.Render(map[string]any{
 		"task": task,
 	}, 200)
-}
-
-func PutTask(wrapper *initializers.Wrapper) {
-	rows, err := initializers.DB.Query("SELECT "+taskSetup["payload"]+" FROM "+taskSetup["table"]+" WHERE id=? ORDER BY date_add DESC", chi.URLParam(wrapper.Request, "id"))
-	if err != nil {
-		wrapper.Error(err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if err := wrapper.WrapData("title"); err != nil {
-		wrapper.Error(err.Error())
-		return
-	}
-	task := Task{
-		Title:   wrapper.Data["title"].(string),
-		IsDone:  false,
-		RefUser: wrapper.ReturnUser(),
-		DateAdd: stringPtr(wrapper.Data["dateAdd"].(string)),
-	}
-	smtp, err := initializers.DB.Prepare("INSERT INTO " + taskSetup["table"] + "(title,date_add,is_done,ref_user) VALUES(?,?,?,?)")
-	if err != nil {
-		wrapper.Error(err.Error(), 400)
-		return
-	}
-	defer smtp.Close()
-	_, err = smtp.Exec(task.Title, task.DateAdd, task.IsDone, task.RefUser)
-	if err != nil {
-		wrapper.Error(err.Error(), 400)
-		return
-	}
-
-	task.DateTo = nil
-	if !task.IsDone {
-		task.DateTo = stringPtr(time.Now().UTC().Truncate(time.Second).Format(initializers.Format))
-	}
-	task.IsDone = !task.IsDone
-	rows, err = initializers.DB.Query(
-		"UPDATE "+taskSetup["table"]+" SET is_done = ?,date_to=? WHERE id=? AND ref_user=?",
-		task.IsDone, task.DateTo, chi.URLParam(wrapper.Request, "id"), wrapper.ReturnUser(),
-	)
-	if err != nil {
-		wrapper.Error(err.Error(), http.StatusBadRequest)
-		return
-	}
-	defer rows.Close()
-
-	if task.DateTo != nil {
-		*task.DateTo, err = wrapFormat(task.DateTo)
-		if err != nil {
-			wrapper.Error("Error parsing dateTo inside PATCH : " + err.Error())
-			return
-		}
-	}
-	*task.DateAdd, err = wrapFormat(task.DateAdd)
-	if err != nil {
-		wrapper.Error("Error parsing dateTo inside PATCH : " + err.Error())
-		return
-	}
-	wrapper.Render(map[string]any{
-		"message": "Update successfull",
-		"result":  task,
-	})
 }
 
 func PatchTask(wrapper *initializers.Wrapper) {
