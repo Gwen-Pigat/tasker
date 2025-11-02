@@ -20,13 +20,13 @@ const (
 )
 
 func (wrapper *Wrapper) HandlePOST(r *http.Request) (errorMSG string, errorCode int) {
-	if r.Method != http.MethodPost {
+	if r.Method != http.MethodPost && r.Method != http.MethodPut {
 		return "Not authorized", http.StatusMethodNotAllowed
 	}
 	if err := wrapper.Request.ParseMultipartForm(10 >> 20); err != nil {
 		return err.Error(), http.StatusBadGateway
 	}
-	wrapper.Data = make(map[string]interface{})
+	wrapper.Data = make(map[string]any)
 	for key, values := range wrapper.Request.MultipartForm.Value {
 		if len(values) <= 0 {
 			continue
