@@ -39,51 +39,73 @@ func main() {
 		AllowedOrigins:   []string{os.Getenv("API_URL_PREPROD"), os.Getenv("API_URL_PROD")},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "OPTIONS", "DELETE"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-type", "X-CSRF-Token"},
-		AllowCredentials: false,
+		AllowCredentials: true,
 		MaxAge:           300,
 	}))
-	Handle(r, http.MethodGet, "/db/flush", FlushDB)
-	Handle(r, http.MethodPost, "/user/connect", user.GetUserConnect)
-	Handle(r, http.MethodPost, "/user", user.CreateUser)
+
+	r.Get("/db/flush", func(w http.ResponseWriter, r *http.Request) {
+		FlushDB(NewWrapper(w, r))
+	})
+
+	r.Post("/user/connect", func(w http.ResponseWriter, r *http.Request) {
+		user.GetUserConnect(NewWrapper(w, r))
+	})
+
+	r.Post("/user", func(w http.ResponseWriter, r *http.Request) {
+		user.CreateUser(NewWrapper(w, r))
+	})
+
 	r.Group(func(r chi.Router) {
 		r.Use(CheckAuth)
-		Handle(r, http.MethodGet, "/user", user.GetUser)
-		Handle(r, http.MethodGet, "/tasks", task.GetTasks)
-		Handle(r, http.MethodPost, "/tasks", task.CreateTask)
-		Handle(r, http.MethodPut, "/tasks/{id}", task.PutTask)
-		Handle(r, http.MethodPatch, "/tasks/{id}", task.PatchTask)
-		Handle(r, http.MethodDelete, "/tasks/{id}", task.DeleteTask)
+		r.Get("/user", func(w http.ResponseWriter, r *http.Request) {
+			user.GetUser(NewWrapper(w, r))
+		})
+		r.Get("/tasks", func(w http.ResponseWriter, r *http.Request) {
+			task.GetTasks(NewWrapper(w, r))
+		})
+		r.Post("/tasks", func(w http.ResponseWriter, r *http.Request) {
+			task.CreateTask(NewWrapper(w, r))
+		})
+		r.Put("/tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
+			task.PutTask(NewWrapper(w, r))
+		})
+		r.Patch("/tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
+			task.PatchTask(NewWrapper(w, r))
+		})
+		r.Delete("/tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
+			task.DeleteTask(NewWrapper(w, r))
+		})
 	})
+
+	fmt.Printf("Server starting on port %s\n", port)
 	http.ListenAndServe(":"+port, r)
 }
 
 func FlushDB(wrapper *initializers.Wrapper) {
-	err := initializers.ExecFlushDB(DB)
-	if err != nil {
-		wrapper.Error(err.Error())
+	if err := initializers.ExecFlushDB(DB); err != nil {
+		wrapper.Error(err.Error(), http.StatusInternalServerError)
 		return
 	}
-	wrapper.Render(map[string]any{
-		"message": "DB is flushed",
-	})
+	wrapper.Render(map[string]any{"message": "DB is flushed"})
 }
 
 func CheckAuth(handler http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		auth := r.Header.Get("Authorization")
 		if auth == "" {
-			NewWrapper(w, r).Error("Not authorized", http.StatusUnauthorized)
+			NewWrapper(w, r).Error("Authorization header missing", http.StatusUnauthorized)
 			return
 		}
+
 		wrapper := NewWrapper(w, r)
-		wrapper.Data = make(map[string]any)
-		wrapper.Data["token"] = auth
+		wrapper.Data = map[string]any{"token": auth}
 		userID, err := user.GetUserAuth(wrapper)
 		if err != nil {
-			NewWrapper(w, r).Error("Not authorized : "+err.Error(), http.StatusUnauthorized)
+			wrapper.Error("Invalid token: "+err.Error(), http.StatusUnauthorized)
 			return
 		}
-		ctx := context.WithValue(wrapper.Request.Context(), "user", userID)
+
+		ctx := context.WithValue(r.Context(), "user", userID)
 		handler.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -91,22 +113,8 @@ func CheckAuth(handler http.Handler) http.Handler {
 func Handle(r chi.Router, method string, path string, handler func(w *initializers.Wrapper)) {
 	r.MethodFunc(method, path, func(w http.ResponseWriter, r *http.Request) {
 		wrapper := NewWrapper(w, r)
-		if method == http.MethodPost || method == http.MethodPut {
-			errorMsg, errorCode := wrapper.HandlePOST(wrapper.Request)
-			if errorMsg != "" {
-				wrapper.Error(errorMsg, errorCode)
-				return
-			}
-		}
 		handler(wrapper)
 	})
-}
-
-func HandleGET(r *http.Request) (errorMSG string, errorCode int) {
-	if r.Method != http.MethodGet {
-		return "Not authorized", http.StatusMethodNotAllowed
-	}
-	return "", 0
 }
 
 func NewWrapper(w http.ResponseWriter, r *http.Request) *initializers.Wrapper {

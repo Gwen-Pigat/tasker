@@ -1,67 +1,160 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
 
-:root{
-    --white: #ffffff;
-    --red: #ff0000;
-    --yellow: #f9a03e;
-    --pico-primary: #ef4736 !important;
-    --pico-primary-background: rgb(206, 47, 29);
-    --pico-primary-border: #ef4736;
-    --pico-primary-underline: rgba(1, 170, 255, 0.5);
-    --pico-primary-hover: #79c0ff;
-    --pico-primary-hover-background: #017fc0;
-    --pico-primary-hover-border: var(--pico-primary-hover-background);
-    --pico-primary-hover-underline: var(--pico-primary-hover);
-    --pico-primary-focus: rgba(1, 170, 255, 0.375);
-    --pico-primary-inverse: #fff;
+:root {
+    --primary: #6366f1;
+    --primary-hover: #4f46e5;
+    --bg-dark: #0f172a;
+    --card-bg: rgba(30, 41, 59, 0.7);
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --success: #10b981;
+    --error: #ef4444;
+    --font-main: 'Outfit', sans-serif;
 }
 
-a.action, button.action{
-    position: absolute;
-    top:0;
-    right: 15px;
+body {
+    background-color: var(--bg-dark);
+    background-image:
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.15) 0px, transparent 50%);
+    color: var(--text-main);
+    font-family: var(--font-main);
+    min-height: 100vh;
+    margin: 0;
+    line-height: 1.6;
 }
 
-a, button{
+main.container {
+    max-width: 800px;
+    padding: 2rem 1rem;
+}
+
+h1 {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    background: linear-gradient(to right, #818cf8, #c084fc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 2rem;
+}
+
+.card,
+article {
+    background: var(--card-bg) !important;
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border) !important;
+    border-radius: 1rem !important;
+    padding: 2rem !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.2);
+}
+
+input,
+button,
+select,
+textarea {
+    border-radius: 0.75rem !important;
+    transition: all 0.2s ease !important;
+}
+
+input:focus {
+    border-color: var(--primary) !important;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2) !important;
+}
+
+button {
+    background-color: var(--primary) !important;
+    border: none !important;
+    font-weight: 600 !important;
+    padding: 0.75rem 1.5rem !important;
+}
+
+button:hover:not(:disabled) {
+    background-color: var(--primary-hover) !important;
+    transform: scale(1.02);
+}
+
+button.secondary {
+    background-color: transparent !important;
+    border: 1px solid var(--glass-border) !important;
+    color: var(--text-main) !important;
+}
+
+button.secondary:hover {
+    background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+.error-toast {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    background: var(--error);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
     display: flex;
     align-items: center;
-    justify-content: center;
-}
-a svg, button svg{
-    margin-right: 0.5rem;
-    width: 15px;
-    height: 15px;
+    gap: 0.5rem;
 }
 
-img.logo{
+img.logo {
     display: flex;
-    max-width: 550px;
-    margin: 2rem auto 1rem auto;
-    width: -webkit-fill-available;
+    max-width: 100%;
+    margin: auto;
+    filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.3));
 }
 
-@media (min-width: 1536px) {
-    .container {
-        max-width: 768px;
-    }
-    main{
-        margin-top: 1rem;
-    }
-}
-
-h1{
-    text-align: center;
-    color: var(--pico-primary);
-    margin-top: 1rem;
-}
-
-main{
-    position: relative;
-}
-
-.actions{
-    position: absolute;
-    right: 15px;
-    top: 15px;
+.task-item {
     display: flex;
     align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.task-item:last-child {
+    border-bottom: none;
+}
+
+.task-title {
+    flex-grow: 1;
+    font-weight: 500;
+}
+
+.task-done .task-title {
+    text-decoration: line-through;
+    color: var(--text-muted);
+}
+
+/* Pico Overrides */
+[role="button"],
+button,
+input[type="submit"],
+input[type="reset"],
+input[type="button"] {
+    margin-bottom: 0;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-in {
+    animation: fadeIn 0.4s ease-out forwards;
 }

@@ -19,22 +19,21 @@ const (
 	Format = "2006-01-02 15:04:05"
 )
 
+func (wrapper *Wrapper) ParseJSON(v any) error {
+	defer wrapper.Request.Body.Close()
+	return json.NewDecoder(wrapper.Request.Body).Decode(v)
+}
+
 func (wrapper *Wrapper) HandlePOST(r *http.Request) (errorMSG string, errorCode int) {
-	if r.Method != http.MethodPost && r.Method != http.MethodPut {
-		return "Not authorized", http.StatusMethodNotAllowed
-	}
-	if err := wrapper.Request.ParseMultipartForm(10 >> 20); err != nil {
-		return err.Error(), http.StatusBadGateway
+	if r.Method != http.MethodPost && r.Method != http.MethodPut && r.Method != http.MethodPatch {
+		return "Method not allowed", http.StatusMethodNotAllowed
 	}
 	wrapper.Data = make(map[string]any)
-	for key, values := range wrapper.Request.MultipartForm.Value {
-		if len(values) <= 0 {
-			continue
-		}
-		wrapper.Data[key] = values[0]
+	if err := wrapper.ParseJSON(&wrapper.Data); err != nil {
+		return "Invalid JSON payload: " + err.Error(), http.StatusBadRequest
 	}
 	if len(wrapper.Data) <= 0 {
-		return "No data received", http.StatusBadGateway
+		return "No data received", http.StatusBadRequest
 	}
 	return "", 0
 }

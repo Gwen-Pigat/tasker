@@ -35,7 +35,7 @@ CREATE TABLE IF NOT EXISTS ` + "`task`" + ` (
   ` + "`ref_user`" + ` int DEFAULT NULL,
   PRIMARY KEY (` + "`id`" + `),
   KEY ` + "`ref_user`" + ` (` + "`ref_user`" + `)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 CREATE TABLE IF NOT EXISTS ` + "`user`" + ` (
   ` + "`id`" + ` int NOT NULL AUTO_INCREMENT,
   ` + "`username`" + ` varchar(255) NOT NULL,
@@ -44,12 +44,9 @@ CREATE TABLE IF NOT EXISTS ` + "`user`" + ` (
   ` + "`is_active`" + ` tinyint(1) NOT NULL,
   ` + "`token`" + ` varchar(255) NOT NULL,
   PRIMARY KEY (` + "`id`" + `)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;`
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;`
 	_, err := db.Exec(dbInit)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func ExecFlushDB(db *sql.DB) error {

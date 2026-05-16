@@ -26,6 +26,12 @@ var userSetup = map[string]string{
 	"table":   "user",
 }
 
+func scanUser(row interface{ Scan(...any) error }) (User, error) {
+	var user User
+	err := row.Scan(&user.ID, &user.Username, &user.Password, &user.DateAdd, &user.IsActive, &user.Token)
+	return user, err
+}
+
 func GetUser(wrapper *initializers.Wrapper) {
 	rows, err := SelectUser("id", wrapper.ReturnUser())
 	if err != nil {
@@ -33,62 +39,50 @@ func GetUser(wrapper *initializers.Wrapper) {
 		return
 	}
 	defer rows.Close()
-	var user User
-	for rows.Next() {
-		if err := rows.Scan(&user.ID, &user.Username, &user.Password, &user.DateAdd, &user.IsActive, &user.Token); err != nil {
+
+	if rows.Next() {
+		user, err := scanUser(rows)
+		if err != nil {
 			wrapper.Error(err.Error())
 			return
 		}
-	}
-	if user.ID == 0 {
-		wrapper.Error("User cannot be found", http.StatusNotFound)
+		wrapper.Render(map[string]any{"data": user})
 		return
 	}
-	wrapper.Render(map[string]any{
-		"data": user,
-	})
+	wrapper.Error("User not found", http.StatusNotFound)
 }
 
 func GetUserConnect(wrapper *initializers.Wrapper) {
-	keys := []string{
-		"username", "password",
+	var payload struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
 	}
-	for _, key := range keys {
-		if err := wrapper.WrapData(key); err != nil {
-			wrapper.Error(err.Error())
-			return
-		}
+	if err := wrapper.ParseJSON(&payload); err != nil {
+		wrapper.Error(err.Error(), http.StatusBadRequest)
+		return
 	}
-	rows, err := SelectUser("username", wrapper.Data["username"])
+
+	rows, err := SelectUser("username", payload.Username)
 	if err != nil {
 		wrapper.Error(err.Error())
 		return
 	}
 	defer rows.Close()
 
-	var user User
-	for rows.Next() {
-		if err := rows.Scan(&user.ID, &user.Username, &user.Password, &user.DateAdd, &user.IsActive, &user.Token); err != nil {
+	if rows.Next() {
+		user, err := scanUser(rows)
+		if err != nil {
 			wrapper.Error(err.Error())
 			return
 		}
-	}
-	if user.ID == 0 {
-		wrapper.Error("User cannot be found", http.StatusNotFound)
+		if err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(payload.Password)); err != nil {
+			wrapper.Error("Invalid credentials", http.StatusUnauthorized)
+			return
+		}
+		wrapper.Render(map[string]any{"data": ReturnUserPayload(user)})
 		return
 	}
-	if user.Password == "" {
-		wrapper.Error("Password is empty in database", http.StatusConflict)
-		return
-	}
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(wrapper.Data["password"].(string)))
-	if err != nil {
-		wrapper.Error("Password or username is not valid", http.StatusNotFound)
-		return
-	}
-	wrapper.Render(map[string]any{
-		"data": ReturnUserPayload(user),
-	})
+	wrapper.Error("User not found", http.StatusNotFound)
 }
 
 func ReturnUserPayload(user User) map[string]string {
@@ -99,88 +93,72 @@ func ReturnUserPayload(user User) map[string]string {
 	}
 }
 
-func GetUserAuth(wrapper *initializers.Wrapper) (userID int, error error) {
-	if err := wrapper.WrapData("token"); err != nil {
-		return 0, err
-	}
+func GetUserAuth(wrapper *initializers.Wrapper) (int, error) {
 	token := strings.Replace(wrapper.Data["token"].(string), "Bearer ", "", -1)
 	rows, err := SelectUser("token", token)
 	if err != nil {
 		return 0, err
 	}
 	defer rows.Close()
-	var user User
-	for rows.Next() {
-		if err := rows.Scan(&user.ID, &user.Username, &user.Password, &user.DateAdd, &user.IsActive, &user.Token); err != nil {
+
+	if rows.Next() {
+		user, err := scanUser(rows)
+		if err != nil {
 			return 0, err
 		}
+		return user.ID, nil
 	}
-	if user.ID == 0 {
-		return 0, fmt.Errorf("user cannot be found, token = %v", token)
-	}
-	return user.ID, err
+	return 0, fmt.Errorf("invalid token")
 }
 
 func SelectUser(column string, value any) (*sql.Rows, error) {
-	rows, err := initializers.DB.Query("SELECT "+userSetup["payload"]+" FROM "+userSetup["table"]+" WHERE "+column+"=?", value)
-	if err != nil {
-		return nil, err
-	}
-	return rows, nil
+	return initializers.DB.Query("SELECT "+userSetup["payload"]+" FROM "+userSetup["table"]+" WHERE "+column+"=?", value)
 }
 
 func CreateUser(wrapper *initializers.Wrapper) {
-	rows, err := SelectUser("username", wrapper.Data["username"].(string))
-	if err != nil {
-		wrapper.Error(err.Error(), http.StatusBadGateway)
+	var payload struct {
+		Username string `json:"username"`
+		Password string `json:"password"`
+	}
+	if err := wrapper.ParseJSON(&payload); err != nil {
+		wrapper.Error(err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer rows.Close()
-	if rows.Next() {
-		wrapper.Error("Username already exist", http.StatusBadGateway)
+
+	if len(payload.Password) < 8 {
+		wrapper.Error("Password must be at least 8 characters", http.StatusBadRequest)
 		return
 	}
-	keys := []string{
-		"username", "password",
-	}
-	for _, key := range keys {
-		if err := wrapper.WrapData(key); err != nil {
-			wrapper.Error(err.Error(), http.StatusBadRequest)
+
+	// Check if exists
+	rows, err := SelectUser("username", payload.Username)
+	if err == nil {
+		defer rows.Close()
+		if rows.Next() {
+			wrapper.Error("Username already exists", http.StatusConflict)
 			return
 		}
 	}
-	if len(wrapper.Data["password"].(string)) < 8 {
-		wrapper.Error("Password must be 8 caracters long minimum", http.StatusBadRequest)
-		return
-	}
-	smtp, err := initializers.DB.Prepare("INSERT INTO " + userSetup["table"] + "(username,password,date_add,is_active,token) VALUES(?,?,?,?,?)")
-	if err != nil {
-		wrapper.Error(err.Error(), http.StatusBadGateway)
-		return
-	}
-	defer smtp.Close()
 
-	password, _ := bcrypt.GenerateFromPassword([]byte(wrapper.Data["password"].(string)), bcrypt.DefaultCost)
-
+	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(payload.Password), bcrypt.DefaultCost)
 	user := User{
-		Username: wrapper.Data["username"].(string),
-		DateAdd:  time.Now().UTC().Truncate(time.Second).Format(initializers.Format),
+		Username: payload.Username,
+		Password: string(hashedPassword),
+		DateAdd:  time.Now().UTC().Format(initializers.Format),
 		IsActive: true,
-		Password: string(password),
 		Token:    uuid.New().String(),
 	}
-	result, err := smtp.Exec(user.Username, user.Password, user.DateAdd, user.IsActive, user.Token)
+
+	res, err := initializers.DB.Exec(
+		"INSERT INTO "+userSetup["table"]+" (username, password, date_add, is_active, token) VALUES (?,?,?,?,?)",
+		user.Username, user.Password, user.DateAdd, user.IsActive, user.Token,
+	)
 	if err != nil {
-		wrapper.Error(err.Error(), http.StatusBadGateway)
+		wrapper.Error(err.Error(), http.StatusInternalServerError)
 		return
 	}
-	lastInsertID, err := result.LastInsertId()
-	if err != nil {
-		wrapper.Error(err.Error(), http.StatusBadGateway)
-		return
-	}
-	user.ID = int(lastInsertID)
-	wrapper.Render(map[string]any{
-		"data": ReturnUserPayload(user),
-	})
+
+	id, _ := res.LastInsertId()
+	user.ID = int(id)
+	wrapper.Render(map[string]any{"data": ReturnUserPayload(user)})
 }
