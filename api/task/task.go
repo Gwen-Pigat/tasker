@@ -92,10 +92,24 @@ func PutTask(wrapper *initializers.Wrapper) {
 	}
 
 	isDone := payload.DateTo != nil && *payload.DateTo != ""
-	dateAdd := strings.ReplaceAll(payload.DateAdd, "T", " ")
+
+	parseInputDate := func(dateStr string) string {
+		if dateStr == "" {
+			return ""
+		}
+		if t, err := time.Parse(time.RFC3339, dateStr); err == nil {
+			return t.UTC().Format(initializers.Format)
+		}
+		if t, err := time.ParseInLocation(initializers.Format, dateStr, initializers.LocParis); err == nil {
+			return t.UTC().Format(initializers.Format)
+		}
+		return strings.ReplaceAll(dateStr, "T", " ")
+	}
+
+	dateAdd := parseInputDate(payload.DateAdd)
 	var dateTo *string
 	if payload.DateTo != nil && *payload.DateTo != "" {
-		dt := strings.ReplaceAll(*payload.DateTo, "T", " ")
+		dt := parseInputDate(*payload.DateTo)
 		dateTo = &dt
 	}
 

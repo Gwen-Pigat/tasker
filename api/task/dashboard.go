@@ -8,7 +8,7 @@ import (
 
 func GetDashboardStats(wrapper *initializers.Wrapper) {
 	userID := wrapper.ReturnUser()
-	lastMonth := time.Now().AddDate(0, -1, 0).Format(initializers.Format)
+	lastMonth := time.Now().UTC().AddDate(0, -1, 0).Format(initializers.Format)
 
 	// Tasks added in the last month
 	var addedCount int
