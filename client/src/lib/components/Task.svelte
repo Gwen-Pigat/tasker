@@ -116,13 +116,22 @@
             <div class="flex flex-col gap-4">
                 <div class="flex justify-between items-start gap-4">
                     <div class="space-y-1">
-                        <h3
-                            class="text-xl font-semibold text-slate-100 transition-all"
-                            class:line-through={task.isDone}
-                            class:text-slate-400={task.isDone}
-                        >
-                            {task.title}
-                        </h3>
+                        <div class="flex items-center gap-2">
+                            <h3
+                                class="text-xl font-semibold text-slate-100 transition-all"
+                                class:line-through={task.isDone}
+                                class:text-slate-400={task.isDone}
+                            >
+                                {task.title}
+                            </h3>
+                            {#if task.isCommon}
+                                <span
+                                    class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-tighter bg-purple-500/20 text-purple-400 border border-purple-500/30"
+                                >
+                                    Common
+                                </span>
+                            {/if}
+                        </div>
                         <div
                             class="flex flex-wrap gap-x-4 gap-y-1 text-xs font-medium text-slate-500"
                         >

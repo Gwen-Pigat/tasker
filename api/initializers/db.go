@@ -32,7 +32,16 @@ CREATE TABLE IF NOT EXISTS ` + "`task`" + ` (
   ` + "`title`" + ` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   ` + "`content`" + ` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
   ` + "`is_done`" + ` tinyint(1) NOT NULL,
+  ` + "`is_common`" + ` tinyint(1) NOT NULL DEFAULT 0,
   ` + "`ref_user`" + ` int DEFAULT NULL,
+  PRIMARY KEY (` + "`id`" + `),
+  KEY ` + "`ref_user`" + ` (` + "`ref_user`" + `)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+CREATE TABLE IF NOT EXISTS ` + "`common_task`" + ` (
+  ` + "`id`" + ` int NOT NULL AUTO_INCREMENT,
+  ` + "`ref_user`" + ` int NOT NULL,
+  ` + "`title`" + ` varchar(255) NOT NULL,
+  ` + "`date_add`" + ` datetime DEFAULT NULL,
   PRIMARY KEY (` + "`id`" + `),
   KEY ` + "`ref_user`" + ` (` + "`ref_user`" + `)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

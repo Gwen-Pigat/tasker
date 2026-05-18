@@ -10,17 +10,25 @@ import (
 )
 
 type Task struct {
+	ID       int     `json:"id"`
+	Title    string  `json:"title"`
+	DateAdd  *string `json:"dateAdd"`
+	DateTo   *string `json:"dateTo"`
+	Content  *string `json:"content"`
+	IsDone   bool    `json:"isDone"`
+	IsCommon bool    `json:"isCommon"`
+	RefUser  int     `json:"refUser"`
+}
+
+type CommonTask struct {
 	ID      int     `json:"id"`
 	Title   string  `json:"title"`
 	DateAdd *string `json:"dateAdd"`
-	DateTo  *string `json:"dateTo"`
-	Content *string `json:"content"`
-	IsDone  bool    `json:"isDone"`
 	RefUser int     `json:"refUser"`
 }
 
 var taskSetup = map[string]string{
-	"payload": "id,date_add,date_to,title,content,is_done,ref_user",
+	"payload": "id,date_add,date_to,title,content,is_done,is_common,ref_user",
 	"table":   "task",
 }
 
@@ -30,7 +38,7 @@ func stringPtr(s string) *string {
 
 func scanTask(row interface{ Scan(...any) error }) (Task, error) {
 	var t Task
-	err := row.Scan(&t.ID, &t.DateAdd, &t.DateTo, &t.Title, &t.Content, &t.IsDone, &t.RefUser)
+	err := row.Scan(&t.ID, &t.DateAdd, &t.DateTo, &t.Title, &t.Content, &t.IsDone, &t.IsCommon, &t.RefUser)
 	return t, err
 }
 
@@ -104,10 +112,18 @@ func PutTask(wrapper *initializers.Wrapper) {
 }
 
 func GetTasks(wrapper *initializers.Wrapper) {
-	rows, err := initializers.DB.Query(
-		"SELECT "+taskSetup["payload"]+" FROM "+taskSetup["table"]+" WHERE ref_user=? ORDER BY date_add DESC LIMIT 50",
-		wrapper.ReturnUser(),
-	)
+	date := wrapper.Request.URL.Query().Get("date")
+	query := "SELECT " + taskSetup["payload"] + " FROM " + taskSetup["table"] + " WHERE ref_user=?"
+	args := []any{wrapper.ReturnUser()}
+
+	if date != "" {
+		query += " AND DATE(date_add) = ?"
+		args = append(args, date)
+	}
+
+	query += " ORDER BY date_add DESC LIMIT 50"
+
+	rows, err := initializers.DB.Query(query, args...)
 	if err != nil {
 		wrapper.Error(err.Error(), http.StatusInternalServerError)
 		return

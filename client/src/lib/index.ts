@@ -14,10 +14,26 @@ export interface Task {
     dateAdd: string;
     dateTo: string | null;
     isDone: boolean;
+    isCommon: boolean; // Flag for tasks derived from common tasks
     isDeleted?: boolean; // UI-only flag
 }
 
+export interface CommonTask {
+    id: number;
+    title: string;
+    dateAdd: string;
+    refUser: number;
+}
+
+export interface DashboardStats {
+    tasksAdded: number;
+    tasksDone: number;
+    avgDuration: number;
+}
+
 export const tasks: Writable<Task[]> = writable([])
+export const commonTasks: Writable<CommonTask[]> = writable([])
+export const dashboardStats: Writable<DashboardStats | null> = writable(null)
 export const user: Writable<User | null> = writable(null)
 export const error: Writable<string> = writable("")
 export const url: Writable<string> = writable("")

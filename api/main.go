@@ -75,6 +75,25 @@ func main() {
 		r.Delete("/tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
 			task.DeleteTask(NewWrapper(w, r))
 		})
+
+		// Dashboard routes
+		r.Get("/dashboard/stats", func(w http.ResponseWriter, r *http.Request) {
+			task.GetDashboardStats(NewWrapper(w, r))
+		})
+
+		// Common Tasks routes
+		r.Get("/common-tasks", func(w http.ResponseWriter, r *http.Request) {
+			task.GetCommonTasks(NewWrapper(w, r))
+		})
+		r.Post("/common-tasks", func(w http.ResponseWriter, r *http.Request) {
+			task.CreateCommonTask(NewWrapper(w, r))
+		})
+		r.Post("/common-tasks/{id}/validate", func(w http.ResponseWriter, r *http.Request) {
+			task.ValidateCommonTask(NewWrapper(w, r))
+		})
+		r.Delete("/common-tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
+			task.DeleteCommonTask(NewWrapper(w, r))
+		})
 	})
 
 	fmt.Printf("Server starting on port %s\n", port)
