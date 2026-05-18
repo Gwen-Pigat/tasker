@@ -65,11 +65,11 @@ func ValidateCommonTask(wrapper *initializers.Wrapper) {
 		return
 	}
 
-	// Insert into regular tasks table as a completed task for today
+	// Insert into regular tasks table as a pending task for today
 	now := time.Now().UTC().Format(initializers.Format)
 	_, err = initializers.DB.Exec(
 		"INSERT INTO task (title, date_add, date_to, is_done, is_common, ref_user) VALUES (?,?,?,?,?,?)",
-		title, now, now, true, true, userID,
+		title, now, nil, false, true, userID,
 	)
 	if err != nil {
 		wrapper.Error(err.Error(), http.StatusInternalServerError)
