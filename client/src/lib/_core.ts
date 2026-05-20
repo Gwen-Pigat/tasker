@@ -1,5 +1,6 @@
 import { user,url } from '$lib'
 import { get } from 'svelte/store'
+import { PUBLIC_API_URL } from '$env/static/public'
 
 export async function resetUser(){
     user.set({})
@@ -12,7 +13,7 @@ export async function fetchAPI(
     method: string,
     data?: any
 ): Promise<any> {
-    const API_URL: string = get(url)
+    const API_URL: string = PUBLIC_API_URL || get(url) || "http://localhost:3000"
     const headers = new Headers()
     const currentUser: any = get(user)
 

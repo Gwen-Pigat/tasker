@@ -52,3 +52,6 @@
 .animate-in {
     animation: fadeIn 0.4s ease-out forwards;
 }
+button:hover{
+    cursor: pointer;
+}
