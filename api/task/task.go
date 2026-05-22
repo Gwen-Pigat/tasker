@@ -42,6 +42,21 @@ func scanTask(row interface{ Scan(...any) error }) (Task, error) {
 	return t, err
 }
 
+func getCombinedDate(dateParam string) string {
+	now := time.Now().UTC()
+	if dateParam != "" {
+		if parsedDate, err := time.Parse("2006-01-02", dateParam); err == nil {
+			combined := time.Date(
+				parsedDate.Year(), parsedDate.Month(), parsedDate.Day(),
+				now.Hour(), now.Minute(), now.Second(), now.Nanosecond(),
+				time.UTC,
+			)
+			return combined.Format(initializers.Format)
+		}
+	}
+	return now.Format(initializers.Format)
+}
+
 func CreateTask(wrapper *initializers.Wrapper) {
 	var payload struct {
 		Title string `json:"title"`
@@ -51,11 +66,12 @@ func CreateTask(wrapper *initializers.Wrapper) {
 		return
 	}
 
+	dateAdd := getCombinedDate(wrapper.Request.URL.Query().Get("date"))
 	task := Task{
 		Title:   payload.Title,
 		IsDone:  false,
 		RefUser: wrapper.ReturnUser(),
-		DateAdd: stringPtr(time.Now().UTC().Format(initializers.Format)),
+		DateAdd: stringPtr(dateAdd),
 	}
 
 	_, err := initializers.DB.Exec(

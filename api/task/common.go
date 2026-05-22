@@ -3,7 +3,6 @@ package task
 import (
 	"net/http"
 	"tasker/initializers"
-	"time"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -40,7 +39,7 @@ func CreateCommonTask(wrapper *initializers.Wrapper) {
 		return
 	}
 
-	dateAdd := time.Now().UTC().Format(initializers.Format)
+	dateAdd := getCombinedDate(wrapper.Request.URL.Query().Get("date"))
 	userID := wrapper.ReturnUser()
 
 	_, err := initializers.DB.Exec(
@@ -66,10 +65,10 @@ func ValidateCommonTask(wrapper *initializers.Wrapper) {
 	}
 
 	// Insert into regular tasks table as a pending task for today
-	now := time.Now().UTC().Format(initializers.Format)
+	dateAdd := getCombinedDate(wrapper.Request.URL.Query().Get("date"))
 	_, err = initializers.DB.Exec(
 		"INSERT INTO task (title, date_add, date_to, is_done, is_common, ref_user) VALUES (?,?,?,?,?,?)",
-		title, now, nil, false, true, userID,
+		title, dateAdd, nil, false, true, userID,
 	)
 	if err != nil {
 		wrapper.Error(err.Error(), http.StatusInternalServerError)

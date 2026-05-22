@@ -4,6 +4,11 @@
     import { fetchAPI } from "$lib/_core";
     import Skeleton from "./Skeleton.svelte";
 
+    interface Props {
+        date?: string;
+    }
+    let { date }: Props = $props();
+
     let isFetching = $state(true);
     let newTitle = $state("");
     let isSubmitting = $state(false);
@@ -21,7 +26,8 @@
         e.preventDefault();
         if (!newTitle) return;
         isSubmitting = true;
-        const response = await fetchAPI("/common-tasks", "POST", { title: newTitle });
+        const url = date ? `/common-tasks?date=${date}` : "/common-tasks";
+        const response = await fetchAPI(url, "POST", { title: newTitle });
         isSubmitting = false;
         if (!response.error) {
             commonTasks.set(response);
@@ -30,10 +36,12 @@
     }
 
     async function validateCommonTask(id: number) {
-        const response = await fetchAPI(`/common-tasks/${id}/validate`, "POST");
+        const url = date ? `/common-tasks/${id}/validate?date=${date}` : `/common-tasks/${id}/validate`;
+        const response = await fetchAPI(url, "POST");
         if (!response.error) {
-            // Refresh today's tasks
-            const tasksResponse = await fetchAPI("/tasks?date=" + new Date().toISOString().split('T')[0], "GET");
+            // Refresh active date's tasks
+            const refreshDate = date || new Date().toISOString().split('T')[0];
+            const tasksResponse = await fetchAPI("/tasks?date=" + refreshDate, "GET");
             if (!tasksResponse.error) {
                 tasks.set(tasksResponse);
             }

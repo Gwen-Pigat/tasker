@@ -1,6 +1,7 @@
 import { user,url } from '$lib'
 import { get } from 'svelte/store'
 import { env } from '$env/dynamic/public'
+import { browser } from '$app/environment'
 
 export async function resetUser(){
     user.set(null)
@@ -13,7 +14,14 @@ export async function fetchAPI(
     method: string,
     data?: any
 ): Promise<any> {
-    const API_URL: string = env.PUBLIC_API_URL || get(url) || "http://localhost:3000"
+    let API_URL: string = env.PUBLIC_API_URL || get(url) || "http://localhost:3000"
+    if (!browser) {
+        if (API_URL.startsWith("http://localhost:3000")) {
+            API_URL = API_URL.replace("http://localhost:3000", "http://api:3000")
+        } else if (API_URL.startsWith("http://127.0.0.1:3000")) {
+            API_URL = API_URL.replace("http://127.0.0.1:3000", "http://api:3000")
+        }
+    }
     const headers = new Headers()
     const currentUser: any = get(user)
 
@@ -49,7 +57,7 @@ export async function fetchAPI(
     } catch (err: any) {
         console.error("API Error:", err)
         return {
-            "error": err
+            "error": err instanceof Error ? err.message : String(err)
         }
     }
 }

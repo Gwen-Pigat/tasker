@@ -116,7 +116,7 @@
                 </div>
             </div>
 
-            <TaskAdd />
+            <TaskAdd date={selectedDate} />
 
             <div class="space-y-4">
                 {#if activeTasks.length > 0}
@@ -158,7 +158,7 @@
 
         <!-- Sidebar -->
         <div class="lg:w-80 space-y-8">
-            <CommonTasks />
+            <CommonTasks date={selectedDate} />
         </div>
     </div>
 </div>
