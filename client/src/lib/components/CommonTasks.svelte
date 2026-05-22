@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
     import { commonTasks, tasks } from "$lib";
     import { fetchAPI } from "$lib/_core";
-    import Loader from "./Loader.svelte";
+    import Skeleton from "./Skeleton.svelte";
 
     let isFetching = $state(true);
     let newTitle = $state("");
@@ -70,7 +70,13 @@
             class="input-field flex-grow text-xs" 
             required 
         />
-        <button type="submit" disabled={isSubmitting || !newTitle} class="bg-purple-500 hover:bg-purple-600 text-white p-2.5 rounded-lg transition-all disabled:opacity-50">
+        <button
+            type="submit"
+            disabled={isSubmitting || !newTitle}
+            class="bg-purple-500 hover:bg-purple-600 text-white p-2.5 rounded-lg transition-all disabled:opacity-50"
+            aria-label="Add common task"
+            title="Add common task"
+        >
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
                 <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
             </svg>
@@ -78,9 +84,7 @@
     </form>
 
     {#if isFetching}
-        <div class="flex justify-center py-8">
-            <Loader />
-        </div>
+        <Skeleton variant="commonTasks" />
     {:else}
         <div class="space-y-3">
             {#each $commonTasks as item (item.id)}
