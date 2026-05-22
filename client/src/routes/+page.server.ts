@@ -13,7 +13,7 @@ export const actions: Actions = {
                 "view": "login"
             }
         }
-        cookies.set("user", JSON.stringify(result), { path: "/" })
+        cookies.set("user", JSON.stringify(result), { path: "/", maxAge: 60 * 60 * 24 * 30 })
         throw redirect(302, "/")
     },
     register: async ({ cookies, request }) => {
@@ -25,7 +25,7 @@ export const actions: Actions = {
                 "view": "register"
             }
         }
-        cookies.set("user", JSON.stringify(result), { path: "/" })
+        cookies.set("user", JSON.stringify(result), { path: "/", maxAge: 60 * 60 * 24 * 30 })
         throw redirect(302, "/")
     },
     logout: async ({ cookies }) => {
