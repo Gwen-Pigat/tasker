@@ -11,5 +11,35 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: tasker_api
+    restart: always
+    environment:
+      DB_URI: "root:@tcp(db:3306)/tasker?multiStatements=true"
+      PORT: "3000"
+      API_URL_PREPROD: "http://localhost:5173"
+      API_URL_PROD: "http://localhost:4173"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: tasker_client
+    restart: always
+    environment:
+      PUBLIC_API_URL: "http://localhost:3000"
+      PORT: "3000"
+    ports:
+      - "5173:3000"
+    depends_on:
+      - api
+
 volumes:
   mysql_data:
