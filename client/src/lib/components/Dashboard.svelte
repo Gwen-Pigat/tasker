@@ -4,6 +4,7 @@
     import { fetchAPI } from "$lib/_core";
     import Skeleton from "./Skeleton.svelte";
     import { fade } from "svelte/transition";
+    import Note from "./Note.svelte";
 
     let isFetching = $state(true);
 
@@ -156,6 +157,92 @@
                     </span>
                 </div>
             </div>
+        </div>
+
+        <div class="glass-card p-8">
+            <h3
+                class="text-xl font-bold text-white mb-6 flex items-center gap-2"
+            >
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5 text-indigo-400"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                    />
+                </svg>
+                Last Note Added
+            </h3>
+
+            {#if stats.lastNote}
+                <div
+                    class="relative overflow-hidden bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-2xl border border-indigo-500/20 p-6 group"
+                >
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                    ></div>
+
+                    <h4
+                        class="text-xl font-bold text-white mb-3 relative z-10 break-words"
+                    >
+                        {stats.lastNote.title}
+                    </h4>
+                    <p
+                        class="text-slate-300 whitespace-pre-wrap leading-relaxed relative z-10 break-words"
+                    >
+                        {stats.lastNote.content}
+                    </p>
+
+                    <div
+                        class="mt-5 pt-4 border-t border-indigo-500/20 flex justify-between items-center relative z-10"
+                    >
+                        <div class="flex flex-col gap-0.5">
+                            <span class="text-xs text-slate-500 font-medium">
+                                Added on {new Date(
+                                    stats.lastNote.dateAdd.replace(" ", "T") +
+                                        "Z",
+                                ).toLocaleDateString(undefined, {
+                                    month: "short",
+                                    day: "numeric",
+                                    year: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                })}
+                            </span>
+                            {#if stats.lastNote.dateUpdate}
+                                <span
+                                    class="text-xs text-slate-500/80 font-medium"
+                                >
+                                    Updated on {new Date(
+                                        stats.lastNote.dateUpdate.replace(
+                                            " ",
+                                            "T",
+                                        ) + "Z",
+                                    ).toLocaleDateString(undefined, {
+                                        month: "short",
+                                        day: "numeric",
+                                        year: "numeric",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                    })}
+                                </span>
+                            {/if}
+                        </div>
+                    </div>
+                </div>
+            {:else}
+                <div
+                    class="p-6 bg-white/5 rounded-2xl border border-white/5 text-center"
+                >
+                    <p class="text-slate-500 italic">No notes added.</p>
+                </div>
+            {/if}
         </div>
     {/if}
 </div>

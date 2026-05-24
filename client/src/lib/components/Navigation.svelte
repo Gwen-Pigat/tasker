@@ -1,7 +1,7 @@
 <script lang="ts">
     import { enhance } from "$app/forms";
 
-    let { currentTab = $bindable() }: { currentTab: "dashboard" | "tasks" } =
+    let { currentTab = $bindable() }: { currentTab: "dashboard" | "tasks" | "notes" } =
         $props();
 </script>
 
@@ -10,6 +10,8 @@
         <title>Tasker | Dashboard</title>
     {:else if currentTab === "tasks"}
         <title>Tasker | Tasks list</title>
+    {:else if currentTab === "notes"}
+        <title>Tasker | Notes</title>
     {/if}
 </svelte:head>
 
@@ -42,6 +44,15 @@
                             : 'text-slate-400 hover:bg-white/5'}"
                     >
                         Tasks
+                    </button>
+                    <button
+                        onclick={() => (currentTab = "notes")}
+                        class="px-2.5 sm:px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all {currentTab ===
+                        'notes'
+                            ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/20'
+                            : 'text-slate-400 hover:bg-white/5'}"
+                    >
+                        Notes
                     </button>
                 </div>
             </div>

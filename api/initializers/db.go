@@ -53,7 +53,18 @@ CREATE TABLE IF NOT EXISTS ` + "`user`" + ` (
   ` + "`is_active`" + ` tinyint(1) NOT NULL,
   ` + "`token`" + ` varchar(255) NOT NULL,
   PRIMARY KEY (` + "`id`" + `)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+
+CREATE TABLE IF NOT EXISTS ` + "`note`" + ` (
+  ` + "`id`" + ` int NOT NULL AUTO_INCREMENT,
+  ` + "`ref_user`" + ` int DEFAULT NULL,
+  ` + "`title`" + ` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
+  ` + "`content`" + ` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci,
+  ` + "`date_add`" + ` datetime DEFAULT NULL,
+  PRIMARY KEY (` + "`id`" + `),
+  KEY ` + "`ref_user`" + ` (` + "`ref_user`" + `)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;`
+
 	_, err := db.Exec(dbInit)
 	return err
 }

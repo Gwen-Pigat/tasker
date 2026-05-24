@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"tasker/dashboard"
 	"tasker/initializers"
+	"tasker/note"
 	"tasker/task"
 	"tasker/user"
 
@@ -42,7 +44,6 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           300,
 	}))
-
 	r.Get("/db/flush", func(w http.ResponseWriter, r *http.Request) {
 		FlushDB(NewWrapper(w, r))
 	})
@@ -54,50 +55,73 @@ func main() {
 	r.Post("/user", func(w http.ResponseWriter, r *http.Request) {
 		user.CreateUser(NewWrapper(w, r))
 	})
-
 	r.Group(func(r chi.Router) {
 		r.Use(CheckAuth)
 		r.Get("/user", func(w http.ResponseWriter, r *http.Request) {
 			user.GetUser(NewWrapper(w, r))
 		})
-		r.Get("/tasks", func(w http.ResponseWriter, r *http.Request) {
-			task.GetTasks(NewWrapper(w, r))
-		})
-		r.Post("/tasks", func(w http.ResponseWriter, r *http.Request) {
-			task.CreateTask(NewWrapper(w, r))
-		})
-		r.Put("/tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
-			task.PutTask(NewWrapper(w, r))
-		})
-		r.Patch("/tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
-			task.PatchTask(NewWrapper(w, r))
-		})
-		r.Delete("/tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
-			task.DeleteTask(NewWrapper(w, r))
-		})
-
-		// Dashboard routes
-		r.Get("/dashboard/stats", func(w http.ResponseWriter, r *http.Request) {
-			task.GetDashboardStats(NewWrapper(w, r))
-		})
-
-		// Common Tasks routes
-		r.Get("/common-tasks", func(w http.ResponseWriter, r *http.Request) {
-			task.GetCommonTasks(NewWrapper(w, r))
-		})
-		r.Post("/common-tasks", func(w http.ResponseWriter, r *http.Request) {
-			task.CreateCommonTask(NewWrapper(w, r))
-		})
-		r.Post("/common-tasks/{id}/validate", func(w http.ResponseWriter, r *http.Request) {
-			task.ValidateCommonTask(NewWrapper(w, r))
-		})
-		r.Delete("/common-tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
-			task.DeleteCommonTask(NewWrapper(w, r))
-		})
+		tasksPaths(r)
+		notesPaths(r)
+		dashbaordPaths(r)
+		commonTasksPaths(r)
 	})
 
 	fmt.Printf("Server starting on port %s\n", port)
 	http.ListenAndServe(":"+port, r)
+}
+
+func tasksPaths(r chi.Router) {
+	r.Get("/tasks", func(w http.ResponseWriter, r *http.Request) {
+		task.GetTasks(NewWrapper(w, r))
+	})
+	r.Post("/tasks", func(w http.ResponseWriter, r *http.Request) {
+		task.CreateTask(NewWrapper(w, r))
+	})
+	r.Put("/tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
+		task.PutTask(NewWrapper(w, r))
+	})
+	r.Patch("/tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
+		task.PatchTask(NewWrapper(w, r))
+	})
+	r.Delete("/tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
+		task.DeleteTask(NewWrapper(w, r))
+	})
+}
+
+func notesPaths(r chi.Router) {
+	r.Get("/notes", func(w http.ResponseWriter, r *http.Request) {
+		note.GetNotes(NewWrapper(w, r))
+	})
+	r.Post("/notes", func(w http.ResponseWriter, r *http.Request) {
+		note.CreateNote(NewWrapper(w, r))
+	})
+	r.Put("/notes/{id}", func(w http.ResponseWriter, r *http.Request) {
+		note.PutNote(NewWrapper(w, r))
+	})
+	r.Delete("/notes/{id}", func(w http.ResponseWriter, r *http.Request) {
+		note.DeleteNote(NewWrapper(w, r))
+	})
+}
+
+func dashbaordPaths(r chi.Router) {
+	r.Get("/dashboard/stats", func(w http.ResponseWriter, r *http.Request) {
+		dashboard.GetDashboardStats(NewWrapper(w, r))
+	})
+}
+
+func commonTasksPaths(r chi.Router) {
+	r.Get("/common-tasks", func(w http.ResponseWriter, r *http.Request) {
+		task.GetCommonTasks(NewWrapper(w, r))
+	})
+	r.Post("/common-tasks", func(w http.ResponseWriter, r *http.Request) {
+		task.CreateCommonTask(NewWrapper(w, r))
+	})
+	r.Post("/common-tasks/{id}/validate", func(w http.ResponseWriter, r *http.Request) {
+		task.ValidateCommonTask(NewWrapper(w, r))
+	})
+	r.Delete("/common-tasks/{id}", func(w http.ResponseWriter, r *http.Request) {
+		task.DeleteCommonTask(NewWrapper(w, r))
+	})
 }
 
 func FlushDB(wrapper *initializers.Wrapper) {

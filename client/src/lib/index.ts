@@ -29,10 +29,21 @@ export interface DashboardStats {
     tasksAdded: number;
     tasksDone: number;
     avgDuration: number;
+    lastNote: Note | null;
+}
+
+export interface Note {
+    id: number;
+    title: string;
+    content: string;
+    dateAdd: string;
+    dateUpdate?: string;
+    refUser: number;
 }
 
 export const tasks: Writable<Task[]> = writable([])
 export const commonTasks: Writable<CommonTask[]> = writable([])
+export const notes: Writable<Note[]> = writable([])
 export const dashboardStats: Writable<DashboardStats | null> = writable(null)
 export const user: Writable<User | null> = writable(null)
 export const error: Writable<string> = writable("")

@@ -3,13 +3,14 @@
     import Tasks from "$lib/components/Tasks.svelte";
     import User from "$lib/components/User.svelte";
     import Dashboard from "$lib/components/Dashboard.svelte";
+    import Notes from "$lib/components/Notes.svelte";
     import Loader from "$lib/components/Loader.svelte";
     import Navigation from "$lib/components/Navigation.svelte";
 
     let { data, form } = $props();
 
     let view: "login" | "register" = $state("login");
-    let currentTab: "dashboard" | "tasks" = $state("dashboard");
+    let currentTab: "dashboard" | "tasks" | "notes" = $state("dashboard");
 
     $effect(() => {
         if (form !== null) {
@@ -34,6 +35,8 @@
             <Tasks />
         {:else if currentTab === "dashboard"}
             <Dashboard />
+        {:else if currentTab === "notes"}
+            <Notes />
         {/if}
     </div>
 {/if}

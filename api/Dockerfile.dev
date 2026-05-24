@@ -1,0 +1,20 @@
+FROM golang:1.23-alpine
+
+WORKDIR /app
+
+RUN apk add --no-cache git ca-certificates
+
+# Install CompileDaemon
+RUN go install github.com/githubnemo/CompileDaemon@latest
+
+# Copy go mod and sum files
+COPY go.mod go.sum ./
+
+# Download all dependencies
+RUN go mod download
+
+# Expose port
+EXPOSE 3000
+
+# Start CompileDaemon to watch for changes and recompile
+ENTRYPOINT CompileDaemon --build="env CGO_ENABLED=0 go build -o server main.go" --command="./server"

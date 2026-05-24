@@ -1,4 +1,4 @@
-package task
+package dashboard
 
 import (
 	"net/http"
@@ -44,11 +44,33 @@ func GetDashboardStats(wrapper *initializers.Wrapper) {
 		return
 	}
 
+	lastNote := initializers.DB.QueryRow("SELECT id,title,date_add,COALESCE(date_update,''),content FROM note WHERE ref_user=? ORDER BY date_add DESC LIMIT 1", userID)
+
+	var lastNoteNote struct {
+		ID         int    `json:"id"`
+		DateAdd    string `json:"dateAdd"`
+		DateUpdate string `json:"dateUpdate"`
+		Title      string `json:"title"`
+		Content    string `json:"content"`
+	}
+
+	var finalNote any
+
+	if err := lastNote.Scan(&lastNoteNote.ID, &lastNoteNote.Title, &lastNoteNote.DateAdd, &lastNoteNote.DateUpdate, &lastNoteNote.Content); err != nil {
+		lastNoteNote.ID = 0
+	}
+	if lastNoteNote.ID == 0 {
+		finalNote = map[string]any{}
+	} else {
+		finalNote = lastNoteNote
+	}
+
 	wrapper.Render(map[string]any{
 		"data": map[string]any{
-			"tasksAdded":   addedCount,
-			"tasksDone":    doneCount,
+			"tasksAdded":  addedCount,
+			"tasksDone":   doneCount,
 			"avgDuration": avgDuration,
+			"lastNote":    finalNote,
 		},
 	})
 }

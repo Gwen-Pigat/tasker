@@ -14,9 +14,11 @@ services:
   api:
     build:
       context: ./api
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: tasker_api
     restart: always
+    volumes:
+      - ./api:/app
     environment:
       DB_URI: "root:@tcp(db:3306)/tasker?multiStatements=true"
       PORT: "3000"
@@ -30,15 +32,18 @@ services:
   client:
     build:
       context: ./client
-      dockerfile: Dockerfile
+      dockerfile: Dockerfile.dev
     container_name: tasker_client
     restart: always
+    volumes:
+      - ./client:/app
+      - /app/node_modules
     environment:
       PUBLIC_API_URL: "http://localhost:3000"
       PORT: "3000"
       ORIGIN: "http://localhost:5173"
     ports:
-      - "5173:3000"
+      - "5173:5173"
     depends_on:
       - api
 
