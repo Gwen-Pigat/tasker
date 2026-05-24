@@ -125,7 +125,7 @@
             </div>
         </div>
 
-        <div class="glass-card p-8">
+        <div class="glass-card p-8 mb-12">
             <h3 class="text-xl font-bold text-white mb-6">
                 Productivity Summary
             </h3>
@@ -180,7 +180,7 @@
                 Last Note Added
             </h3>
 
-            {#if stats.lastNote}
+            {#if Object.entries(stats.lastNote).length}
                 <div
                     class="relative overflow-hidden bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-2xl border border-indigo-500/20 p-6 group"
                 >
