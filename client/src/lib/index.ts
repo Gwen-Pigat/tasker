@@ -29,7 +29,7 @@ export interface DashboardStats {
     tasksAdded: number;
     tasksDone: number;
     avgDuration: number;
-    lastNote: Note | null;
+    lastNote: Note;
 }
 
 export interface Note {
