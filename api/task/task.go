@@ -13,6 +13,7 @@ type Task struct {
 	ID       int     `json:"id"`
 	Title    string  `json:"title"`
 	DateAdd  *string `json:"dateAdd"`
+	DateFrom *string `json:"dateFrom"`
 	DateTo   *string `json:"dateTo"`
 	Content  *string `json:"content"`
 	IsDone   bool    `json:"isDone"`
@@ -28,7 +29,7 @@ type CommonTask struct {
 }
 
 var taskSetup = map[string]string{
-	"payload": "id,date_add,date_to,title,content,is_done,is_common,ref_user",
+	"payload": "id,date_add,date_from,date_to,title,content,is_done,is_common,ref_user",
 	"table":   "task",
 }
 
@@ -38,7 +39,7 @@ func stringPtr(s string) *string {
 
 func scanTask(row interface{ Scan(...any) error }) (Task, error) {
 	var t Task
-	err := row.Scan(&t.ID, &t.DateAdd, &t.DateTo, &t.Title, &t.Content, &t.IsDone, &t.IsCommon, &t.RefUser)
+	err := row.Scan(&t.ID, &t.DateAdd, &t.DateFrom, &t.DateTo, &t.Title, &t.Content, &t.IsDone, &t.IsCommon, &t.RefUser)
 	return t, err
 }
 
@@ -87,9 +88,10 @@ func CreateTask(wrapper *initializers.Wrapper) {
 
 func PutTask(wrapper *initializers.Wrapper) {
 	var payload struct {
-		Title   string  `json:"title"`
-		DateAdd string  `json:"dateAdd"`
-		DateTo  *string `json:"dateTo"`
+		Title    string  `json:"title"`
+		DateAdd  string  `json:"dateAdd"`
+		DateFrom *string `json:"dateFrom"`
+		DateTo   *string `json:"dateTo"`
 	}
 	if err := wrapper.ParseJSON(&payload); err != nil {
 		wrapper.Error(err.Error(), http.StatusBadRequest)
@@ -101,7 +103,8 @@ func PutTask(wrapper *initializers.Wrapper) {
 
 	// Verify ownership
 	var exists bool
-	err := initializers.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM "+taskSetup["table"]+" WHERE id=? AND ref_user=?)", id, userID).Scan(&exists)
+	dbRow := initializers.DB.QueryRow("SELECT EXISTS(SELECT 1 FROM "+taskSetup["table"]+" WHERE id=? AND ref_user=?)", id, userID)
+	err := dbRow.Scan(&exists)
 	if err != nil || !exists {
 		wrapper.Error("Task not found or access denied", http.StatusNotFound)
 		return
@@ -123,6 +126,11 @@ func PutTask(wrapper *initializers.Wrapper) {
 	}
 
 	dateAdd := parseInputDate(payload.DateAdd)
+	var dateFrom *string
+	if payload.DateFrom != nil && *payload.DateFrom != "" {
+		df := parseInputDate(*payload.DateFrom)
+		dateFrom = &df
+	}
 	var dateTo *string
 	if payload.DateTo != nil && *payload.DateTo != "" {
 		dt := parseInputDate(*payload.DateTo)
@@ -130,15 +138,30 @@ func PutTask(wrapper *initializers.Wrapper) {
 	}
 
 	_, err = initializers.DB.Exec(
-		"UPDATE "+taskSetup["table"]+" SET title=?, date_add=?, is_done=?, date_to=? WHERE id=? AND ref_user=?",
-		payload.Title, dateAdd, isDone, dateTo, id, userID,
+		"UPDATE "+taskSetup["table"]+" SET title=?, date_add=?, date_from=?, is_done=?, date_to=? WHERE id=? AND ref_user=?",
+		payload.Title, dateAdd, dateFrom, isDone, dateTo, id, userID,
 	)
 	if err != nil {
 		wrapper.Error(err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	wrapper.Render(map[string]any{"message": "Task updated successfully"})
+	updatedRow := initializers.DB.QueryRow("SELECT "+taskSetup["payload"]+" FROM "+taskSetup["table"]+" WHERE id=? AND ref_user=?", id, userID)
+	task, err := scanTask(updatedRow)
+	if err != nil {
+		wrapper.Error(err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if task.DateTo != nil {
+		*task.DateTo, _ = wrapFormat(task.DateTo)
+	}
+	if task.DateFrom != nil {
+		*task.DateFrom, _ = wrapFormat(task.DateFrom)
+	}
+	*task.DateAdd, _ = wrapFormat(task.DateAdd)
+
+	wrapper.Render(map[string]any{"message": "Task updated successfully", "data": task})
 }
 
 func GetTasks(wrapper *initializers.Wrapper) {
@@ -170,6 +193,9 @@ func GetTasks(wrapper *initializers.Wrapper) {
 		if task.DateTo != nil {
 			*task.DateTo, _ = wrapFormat(task.DateTo)
 		}
+		if task.DateFrom != nil {
+			*task.DateFrom, _ = wrapFormat(task.DateFrom)
+		}
 		*task.DateAdd, _ = wrapFormat(task.DateAdd)
 		tasks = append(tasks, task)
 	}
@@ -185,6 +211,15 @@ func GetTask(wrapper *initializers.Wrapper) {
 		wrapper.Error("Task not found", http.StatusNotFound)
 		return
 	}
+
+	if task.DateTo != nil {
+		*task.DateTo, _ = wrapFormat(task.DateTo)
+	}
+	if task.DateFrom != nil {
+		*task.DateFrom, _ = wrapFormat(task.DateFrom)
+	}
+	*task.DateAdd, _ = wrapFormat(task.DateAdd)
+
 	wrapper.Render(map[string]any{"data": task})
 }
 

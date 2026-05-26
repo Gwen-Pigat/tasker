@@ -1,4 +1,4 @@
-import { user,url } from '$lib'
+import { user, url, error } from '$lib'
 import { get } from 'svelte/store'
 import { env } from '$env/dynamic/public'
 import { browser } from '$app/environment'
@@ -56,8 +56,12 @@ export async function fetchAPI(
         return result
     } catch (err: any) {
         console.error("API Error:", err)
+        const errMsg = err instanceof Error ? err.message : String(err)
+        if (browser) {
+            error.set(errMsg)
+        }
         return {
-            "error": err instanceof Error ? err.message : String(err)
+            "error": errMsg
         }
     }
 }

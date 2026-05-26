@@ -47,11 +47,43 @@
         return new Date(task.dateTo).toLocaleString();
     });
 
+    let nowTime = $state(Date.now());
+
+    $effect(() => {
+        if (task.dateFrom && !task.isDone) {
+            const interval = setInterval(() => {
+                nowTime = Date.now();
+            }, 1000);
+            return () => clearInterval(interval);
+        }
+    });
+
+    const timerLabel = $derived.by(() => {
+        if (!task.dateFrom || task.isDone) return "";
+        const start = new Date(task.dateFrom).getTime();
+        const diffMs = nowTime - start;
+        const diffSecs = Math.max(0, Math.floor(diffMs / 1000));
+        const diffMinutes = Math.floor(diffSecs / 60);
+        const totalHours = Math.floor(diffMinutes / 60);
+
+        const days = Math.floor(totalHours / 24);
+        const hours = totalHours % 24;
+        const minutes = diffMinutes % 60;
+        const seconds = diffSecs % 60;
+
+        const pad = (n: number) => String(n).padStart(2, "0");
+
+        if (days > 0) {
+            return `${days}d ${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+        }
+        return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+    });
+
     const diffLabel = $derived.by(() => {
         if (!task.dateTo) return "";
-        const dAdd = new Date(task.dateAdd);
+        const dStart = new Date(task.dateFrom || task.dateAdd);
         const dTo = new Date(task.dateTo);
-        const diffMs = dTo.getTime() - dAdd.getTime();
+        const diffMs = dTo.getTime() - dStart.getTime();
         const diffSecs = Math.max(0, Math.floor(diffMs / 1000));
         const diffMinutes = Math.floor(diffSecs / 60);
         const totalHours = Math.floor(diffMinutes / 60);
@@ -74,6 +106,24 @@
         return localDate.toISOString().slice(0, 16);
     }
 
+    async function startTask() {
+        isSubmit = true;
+        const nowStr = new Date().toISOString();
+        const payload = {
+            title: task.title,
+            dateAdd: task.dateAdd,
+            dateFrom: nowStr,
+            dateTo: task.dateTo,
+        };
+        const data = await fetchAPI(`/tasks/${task.id}`, "PUT", payload);
+        isSubmit = false;
+        if (data.error) return;
+
+        tasks.update((all) =>
+            all.map((t) => (t.id === task.id ? { ...t, dateFrom: nowStr } : t)),
+        );
+    }
+
     async function saveTask(e: Event) {
         e.preventDefault();
         isSubmit = true;
@@ -81,6 +131,7 @@
 
         // Convert local datetime back to UTC ISO
         const dateAddInput = formData.get("dateAdd") as string;
+        const dateFromInput = formData.get("dateFrom") as string;
         const dateToInput = formData.get("dateTo") as string;
 
         const payload = {
@@ -88,6 +139,7 @@
             dateAdd: dateAddInput
                 ? new Date(dateAddInput).toISOString()
                 : task.dateAdd,
+            dateFrom: dateFromInput ? new Date(dateFromInput).toISOString() : null,
             dateTo: dateToInput ? new Date(dateToInput).toISOString() : null,
         };
 
@@ -97,7 +149,15 @@
 
         edit = false;
         tasks.update((all) =>
-            all.map((t) => (t.id === task.id ? { ...t, ...payload } : t)),
+            all.map((t) =>
+                t.id === task.id
+                    ? {
+                          ...t,
+                          ...payload,
+                          isDone: !!payload.dateTo,
+                      }
+                    : t,
+            ),
         );
     }
 
@@ -133,12 +193,12 @@
                             {/if}
                         </div>
                         <div
-                            class="flex flex-wrap gap-x-4 gap-y-1 text-xs font-medium text-slate-500"
+                            class="flex flex-wrap gap-x-4 gap-y-1.5 text-xs font-medium text-slate-500"
                         >
                             <span class="flex items-center gap-1">
                                 <svg
                                     xmlns="http://www.w3.org/2000/svg"
-                                    class="w-3 h-3"
+                                    class="w-3.5 h-3.5"
                                     viewBox="0 0 20 20"
                                     fill="currentColor"
                                 >
@@ -150,13 +210,31 @@
                                 </svg>
                                 Added {dateAddFormat}
                             </span>
+                            {#if task.dateFrom && !task.isDone}
+                                <span
+                                    class="flex items-center gap-1 text-indigo-400 font-semibold animate-pulse"
+                                >
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        class="w-3.5 h-3.5 animate-spin-slow"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                        stroke-width="2.5"
+                                    >
+                                        <circle cx="12" cy="12" r="10" />
+                                        <path d="M12 6v6l4 2" />
+                                    </svg>
+                                    Running: {timerLabel}
+                                </span>
+                            {/if}
                             {#if task.isDone}
                                 <span
                                     class="flex items-center gap-1 text-emerald-500/80"
                                 >
                                     <svg
                                         xmlns="http://www.w3.org/2000/svg"
-                                        class="w-3 h-3"
+                                        class="w-3"
                                         viewBox="0 0 20 20"
                                         fill="currentColor"
                                     >
@@ -171,6 +249,14 @@
                             {/if}
                         </div>
                     </div>
+                    {#if task.dateFrom && !task.isDone}
+                        <span
+                            class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 whitespace-nowrap flex items-center gap-1.5"
+                        >
+                            <span class="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-ping"></span>
+                            {timerLabel}
+                        </span>
+                    {/if}
                     {#if task.isDone}
                         <span
                             class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 whitespace-nowrap"
@@ -198,7 +284,7 @@
                     />
                 </div>
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label
                             for="edit-dateAdd-{task.id}"
@@ -211,6 +297,20 @@
                             name="dateAdd"
                             value={toLocalISO(task.dateAdd)}
                             required
+                            class="input-field"
+                        />
+                    </div>
+                    <div>
+                        <label
+                            for="edit-dateFrom-{task.id}"
+                            class="block text-xs font-bold text-slate-500 uppercase mb-2"
+                            >Start Date</label
+                        >
+                        <input
+                            id="edit-dateFrom-{task.id}"
+                            type="datetime-local"
+                            name="dateFrom"
+                            value={toLocalISO(task.dateFrom)}
                             class="input-field"
                         />
                     </div>
@@ -246,25 +346,69 @@
         {/if}
 
         <div class="mt-6 pt-6 border-t border-white/5 flex flex-wrap gap-2">
-            <button
-                class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold py-2 px-4 rounded-lg border border-white/5 transition-all flex items-center gap-2"
-                onclick={patchTask}
-                disabled={isSubmit}
-            >
-                <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-3.5 h-3.5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
+            {#if !task.isDone}
+                {#if !task.dateFrom}
+                    <button
+                        class="bg-indigo-600 hover:bg-indigo-500 text-white text-[11px] font-bold py-2 px-4 rounded-lg border border-indigo-500/30 transition-all flex items-center gap-2 shadow-lg shadow-indigo-500/10"
+                        onclick={startTask}
+                        disabled={isSubmit}
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="w-3.5 h-3.5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+                        Start
+                    </button>
+                {:else}
+                    <button
+                        class="bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold py-2 px-4 rounded-lg border border-emerald-500/30 transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/10"
+                        onclick={patchTask}
+                        disabled={isSubmit}
+                    >
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            class="w-3.5 h-3.5"
+                            viewBox="0 0 20 20"
+                            fill="currentColor"
+                        >
+                            <path
+                                fill-rule="evenodd"
+                                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                clip-rule="evenodd"
+                            />
+                        </svg>
+                        Finish
+                    </button>
+                {/if}
+            {:else}
+                <button
+                    class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold py-2 px-4 rounded-lg border border-white/5 transition-all flex items-center gap-2"
+                    onclick={patchTask}
+                    disabled={isSubmit}
                 >
-                    <path
-                        fill-rule="evenodd"
-                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                        clip-rule="evenodd"
-                    />
-                </svg>
-                {task.isDone ? "Undo" : "Finish"}
-            </button>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-3.5 h-3.5"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                    >
+                        <path
+                            fill-rule="evenodd"
+                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                            clip-rule="evenodd"
+                        />
+                    </svg>
+                    Undo
+                </button>
+            {/if}
             <button
                 class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-bold py-2 px-4 rounded-lg border border-white/5 transition-all flex items-center gap-2"
                 onclick={() => (edit = !edit)}
@@ -305,4 +449,11 @@
 {/if}
 
 <style>
+    @keyframes spin-slow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    :global(.animate-spin-slow) {
+        animation: spin-slow 10s linear infinite;
+    }
 </style>

@@ -28,6 +28,7 @@ SET time_zone = "+00:00";
 CREATE TABLE IF NOT EXISTS ` + "`task`" + ` (
   ` + "`id`" + ` int NOT NULL AUTO_INCREMENT,
   ` + "`date_add`" + ` datetime DEFAULT NULL,
+  ` + "`date_from`" + ` datetime DEFAULT NULL,
   ` + "`date_to`" + ` datetime DEFAULT NULL,
   ` + "`title`" + ` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NOT NULL,
   ` + "`content`" + ` text CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci DEFAULT NULL,
@@ -66,7 +67,11 @@ CREATE TABLE IF NOT EXISTS ` + "`note`" + ` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;`
 
 	_, err := db.Exec(dbInit)
-	return err
+	if err != nil {
+		return err
+	}
+	_, _ = db.Exec("ALTER TABLE `task` ADD COLUMN IF NOT EXISTS `date_from` datetime DEFAULT NULL AFTER `date_add`")
+	return nil
 }
 
 func ExecFlushDB(db *sql.DB) error {

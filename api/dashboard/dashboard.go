@@ -33,10 +33,10 @@ func GetDashboardStats(wrapper *initializers.Wrapper) {
 	}
 
 	// Average duration in minutes for tasks done in the last month
-	// MySQL: TIMESTAMPDIFF(MINUTE, date_add, date_to)
+	// MySQL: TIMESTAMPDIFF(MINUTE, date_from, date_to)
 	var avgDuration float64
 	err = initializers.DB.QueryRow(
-		"SELECT COALESCE(AVG(TIMESTAMPDIFF(MINUTE, date_add, date_to)), 0) FROM task WHERE ref_user=? AND is_done=1 AND date_to >= ?",
+		"SELECT COALESCE(AVG(TIMESTAMPDIFF(MINUTE, date_from, date_to)), 0) FROM task WHERE ref_user=? AND is_done=1 AND date_to >= ?",
 		userID, lastMonth,
 	).Scan(&avgDuration)
 	if err != nil {

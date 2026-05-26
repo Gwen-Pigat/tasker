@@ -12,6 +12,7 @@ export interface Task {
     userId: number;
     title: string;
     dateAdd: string;
+    dateFrom: string | null;
     dateTo: string | null;
     isDone: boolean;
     isCommon: boolean; // Flag for tasks derived from common tasks
