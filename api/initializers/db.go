@@ -70,7 +70,8 @@ CREATE TABLE IF NOT EXISTS ` + "`note`" + ` (
 	if err != nil {
 		return err
 	}
-	_, _ = db.Exec("ALTER TABLE `task` ADD COLUMN IF NOT EXISTS `date_from` datetime DEFAULT NULL AFTER `date_add`")
+	_, _ = db.Exec("ALTER TABLE `task` ADD COLUMN `date_from` datetime DEFAULT NULL AFTER `date_add`")
+	_, _ = db.Exec("UPDATE `task` SET `date_from` = `date_add` WHERE `is_done` = 1 AND `date_from` IS NULL")
 	return nil
 }
 
