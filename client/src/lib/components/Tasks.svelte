@@ -55,7 +55,7 @@
                     <p class="text-slate-400 font-medium">
                         Manage your goals for <span class="text-white"
                             >{new Date(selectedDate).toLocaleDateString(
-                                undefined,
+                                "en-US",
                                 {
                                     weekday: "long",
                                     month: "short",
