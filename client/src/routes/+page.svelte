@@ -7,26 +7,13 @@
     import Loader from "$lib/components/Loader.svelte";
     import Navigation from "$lib/components/Navigation.svelte";
 
-    let { data, form } = $props();
-
     let view: "login" | "register" = $state("login");
     let currentTab: "dashboard" | "tasks" | "notes" = $state("dashboard");
-
-    $effect(() => {
-        if (form !== null) {
-            if (form.error) {
-                error.set(form.error);
-            }
-            if (form.view) {
-                view = form.view as "login" | "register";
-            }
-        }
-    });
 </script>
 
 <Loader />
 
-{#if !data.user}
+{#if !$user}
     <User {view} />
 {:else}
     <div class="min-h-screen bg-slate-950/20">

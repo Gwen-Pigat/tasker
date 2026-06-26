@@ -98,7 +98,7 @@
             {#each $commonTasks as item (item.id)}
                 <div class="flex items-center justify-between p-3 bg-white/5 rounded-lg border border-white/5 group hover:border-purple-500/30 transition-all">
                     <span class="text-slate-300 text-sm font-medium">{item.title}</span>
-                    <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div class="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                         <button 
                             onclick={() => validateCommonTask(item.id)}
                             class="p-1.5 text-emerald-400 hover:bg-emerald-500/10 rounded-md transition-colors"

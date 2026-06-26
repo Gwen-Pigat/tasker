@@ -1,6 +1,6 @@
 import { user, url, error } from '$lib'
 import { get } from 'svelte/store'
-import { env } from '$env/dynamic/public'
+import { PUBLIC_API_URL } from '$env/static/public'
 import { browser } from '$app/environment'
 
 export async function resetUser(){
@@ -14,7 +14,7 @@ export async function fetchAPI(
     method: string,
     data?: any
 ): Promise<any> {
-    let API_URL: string = env.PUBLIC_API_URL || get(url) || "http://localhost:3000"
+    let API_URL: string = (browser && localStorage.getItem("api_url")) || PUBLIC_API_URL || get(url) || "http://localhost:3000"
     if (!browser) {
         if (API_URL.startsWith("http://localhost:3000")) {
             API_URL = API_URL.replace("http://localhost:3000", "http://api:3000")

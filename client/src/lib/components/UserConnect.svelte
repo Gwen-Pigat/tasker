@@ -1,5 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
+    import { fetchAPI } from "$lib/_core";
+    import { user, error } from "$lib";
 
     interface Props {
         title: string;
@@ -29,6 +31,23 @@
         triggerFocus()
     })
 
+    async function handleLogin(e: SubmitEvent) {
+        e.preventDefault();
+        error.set("");
+        const formData = new FormData();
+        formData.append("username", username);
+        formData.append("password", password);
+
+        const result = await fetchAPI("/user/connect", "POST", formData);
+        if (result.error) {
+            error.set(result.error);
+            return;
+        }
+
+        localStorage.setItem("user", JSON.stringify(result));
+        user.set(result);
+    }
+
 </script>
 
 <div class="glass-card p-8 w-full max-w-md mx-auto animate-in">
@@ -36,7 +55,7 @@
         {title}
     </h1>
     
-    <form id="setConnect" method="POST" action="?/login" class="space-y-6">
+    <form id="setConnect" onsubmit={handleLogin} class="space-y-6">
         <div>
             <label for="username" class="block text-sm font-medium text-slate-400 mb-2">Username</label>
             <input id="username" type="text" placeholder="Enter your username" name="username" bind:value={username} bind:this={input} required class="input-field" />

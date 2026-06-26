@@ -26,8 +26,8 @@
 
     let isEditing = $state(false);
     let isSaving = $state(false);
-    let editTitle = $state(note.title);
-    let editContent = $state(note.content);
+    let editTitle = $state("");
+    let editContent = $state("");
 
     function startEditing() {
         editTitle = note.title;
@@ -203,7 +203,7 @@
             </div>
 
             <div
-                class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                class="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
             >
                 {#if !isEditing}
                     <button

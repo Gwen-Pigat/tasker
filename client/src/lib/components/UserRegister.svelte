@@ -1,5 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
+    import { fetchAPI } from "$lib/_core";
+    import { user, error } from "$lib";
 
     interface Props {
         title: string;
@@ -29,6 +31,23 @@
         triggerFocus()
     })
 
+    async function handleRegister(e: SubmitEvent) {
+        e.preventDefault();
+        error.set("");
+        const formData = new FormData();
+        formData.append("username", username);
+        formData.append("password", password);
+
+        const result = await fetchAPI("/user", "POST", formData);
+        if (result.error) {
+            error.set(result.error);
+            return;
+        }
+
+        localStorage.setItem("user", JSON.stringify(result));
+        user.set(result);
+    }
+
 </script>
 
 <div class="glass-card p-8 w-full max-w-md mx-auto animate-in">
@@ -36,7 +55,7 @@
         {title}
     </h1>
     
-    <form id="setRegister" method="POST" action="?/register" class="space-y-6">
+    <form id="setRegister" onsubmit={handleRegister} class="space-y-6">
         <div>
             <label for="reg-username" class="block text-sm font-medium text-slate-400 mb-2">Username</label>
             <input id="reg-username" type="text" placeholder="Choose a username" name="username" bind:value={username} bind:this={input} required class="input-field" />

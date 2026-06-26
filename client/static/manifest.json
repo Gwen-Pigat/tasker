@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Tasker",
+  "version": "1.0.0",
+  "description": "A premium task management application.",
+  "action": {},
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "index.html"
+  },
+  "permissions": [
+    "storage",
+    "sidePanel"
+  ],
+  "host_permissions": [
+    "http://localhost:3000/*"
+  ]
+}

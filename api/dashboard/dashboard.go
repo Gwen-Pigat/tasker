@@ -44,6 +44,7 @@ func GetDashboardStats(wrapper *initializers.Wrapper) {
 		return
 	}
 
+	// Last note
 	lastNote := initializers.DB.QueryRow("SELECT id,title,date_add,COALESCE(date_update,''),content FROM note WHERE ref_user=? ORDER BY date_add DESC LIMIT 1", userID)
 
 	var lastNoteNote struct {

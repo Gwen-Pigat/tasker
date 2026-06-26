@@ -1,8 +1,13 @@
 <script lang="ts">
-    import { enhance } from "$app/forms";
+    import { user } from "$lib";
 
     let { currentTab = $bindable() }: { currentTab: "dashboard" | "tasks" | "notes" } =
         $props();
+
+    function handleLogout() {
+        localStorage.removeItem("user");
+        user.set(null);
+    }
 </script>
 
 <svelte:head>
@@ -57,27 +62,25 @@
                 </div>
             </div>
             <div class="flex-shrink-0">
-                <form method="POST" action="?/logout" use:enhance>
-                    <button
-                        type="submit"
-                        class="bg-slate-800 hover:bg-red-500/20 hover:text-red-400 text-slate-300 text-xs font-bold p-2.5 sm:py-2.5 sm:px-4 rounded-lg sm:rounded-xl border border-white/5 transition-all flex items-center justify-center gap-2"
-                        title="Logout Account"
+                <button
+                    onclick={handleLogout}
+                    class="bg-slate-800 hover:bg-red-500/20 hover:text-red-400 text-slate-300 text-xs font-bold p-2.5 sm:py-2.5 sm:px-4 rounded-lg sm:rounded-xl border border-white/5 transition-all flex items-center justify-center gap-2"
+                    title="Logout Account"
+                >
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        class="w-4 h-4 flex-shrink-0"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
                     >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="w-4 h-4 flex-shrink-0"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z"
-                                clip-rule="evenodd"
-                            />
-                        </svg>
-                        <span class="hidden sm:inline">Logout</span>
-                    </button>
-                </form>
+                        <path
+                            fill-rule="evenodd"
+                            d="M3 3a1 1 0 00-1 1v12a1 1 0 102 0V4a1 1 0 00-1-1zm10.293 9.293a1 1 0 001.414 1.414l3-3a1 1 0 000-1.414l-3-3a1 1 0 10-1.414 1.414L14.586 9H7a1 1 0 100 2h7.586l-1.293 1.293z"
+                            clip-rule="evenodd"
+                        />
+                    </svg>
+                    <span class="hidden sm:inline">Logout</span>
+                </button>
             </div>
         </div>
     </div>
