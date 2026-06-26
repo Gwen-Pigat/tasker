@@ -20,23 +20,17 @@ FROM node:20-alpine AS runner
 
 WORKDIR /app
 
-# Set default Node environment to production
-ENV NODE_ENV=production
-
-# Copy package configuration
-COPY package.json package-lock.json ./
-
-# Install only production dependencies to keep the image slim
-RUN npm ci --omit=dev
+# Install sirv-cli globally to serve the static assets
+RUN npm install -g sirv-cli
 
 # Copy built app files from the builder stage
 COPY --from=builder /app/build ./build
 
-# Expose SvelteKit default runtime port
+# Expose server port
 EXPOSE 3000
 
 # Set default runtime environment variables
 ENV PORT=3000
 
-# Start SvelteKit production server
-CMD ["node", "build/index.js"]
+# Start static server in SPA mode (redirecting non-file routes to index.html)
+CMD ["sirv", "build", "--port", "3000", "--single", "--host", "0.0.0.0"]
