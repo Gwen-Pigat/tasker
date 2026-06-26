@@ -3,7 +3,20 @@
   "name": "Tasker",
   "version": "1.0.0",
   "description": "A premium task management application.",
-  "action": {},
+  "action": {
+    "default_icon": {
+      "16": "images/favicon-96x96.png",
+      "32": "images/favicon-96x96.png",
+      "48": "images/favicon-96x96.png",
+      "128": "images/web-app-manifest-192x192.png"
+    }
+  },
+  "icons": {
+    "16": "images/favicon-96x96.png",
+    "32": "images/favicon-96x96.png",
+    "48": "images/favicon-96x96.png",
+    "128": "images/web-app-manifest-192x192.png"
+  },
   "background": {
     "service_worker": "background.js"
   },
