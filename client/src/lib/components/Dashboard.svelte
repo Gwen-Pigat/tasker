@@ -97,40 +97,6 @@
             </div>
         </div>
 
-        <div class="glass-card p-8 mb-12">
-            <h3 class="text-xl font-bold text-white mb-6">
-                Productivity Summary
-            </h3>
-            <div class="space-y-4">
-                <div
-                    class="flex justify-between items-center p-4 bg-white/5 rounded-lg border border-white/5"
-                >
-                    <span class="text-slate-300 font-medium"
-                        >Completion Rate</span
-                    >
-                    <span class="text-emerald-400 font-bold">
-                        {stats.tasksAdded > 0
-                            ? Math.round(
-                                  (stats.tasksDone / stats.tasksAdded) * 100,
-                              )
-                            : 0}%
-                    </span>
-                </div>
-                <div
-                    class="flex justify-between items-center p-4 bg-white/5 rounded-lg border border-white/5"
-                >
-                    <span class="text-slate-300 font-medium"
-                        >Efficiency Score</span
-                    >
-                    <span class="text-indigo-400 font-bold">
-                        {stats.avgDuration > 0
-                            ? Math.round(100 - stats.avgDuration / 60)
-                            : 100}
-                    </span>
-                </div>
-            </div>
-        </div>
-
         <div class="glass-card p-8">
             <h3
                 class="text-xl font-bold text-white mb-6 flex items-center gap-2"
