@@ -15,7 +15,11 @@ export async function fetchAPI(
     data?: any
 ): Promise<any> {
     const defaultAPI = dev ? "http://localhost:3000" : "https://tasker-api.orizenh.com"
-    let API_URL: string = (browser && localStorage.getItem("api_url")) || env.PUBLIC_API_URL || get(url) || defaultAPI
+    let publicAPI: string | undefined = env.PUBLIC_API_URL
+    if (!dev && publicAPI && (publicAPI.includes("localhost") || publicAPI.includes("127.0.0.1"))) {
+        publicAPI = undefined
+    }
+    let API_URL: string = (browser && localStorage.getItem("api_url")) || publicAPI || get(url) || defaultAPI
     if (!browser) {
         if (API_URL.startsWith("http://localhost:3000")) {
             API_URL = API_URL.replace("http://localhost:3000", "http://api:3000")
