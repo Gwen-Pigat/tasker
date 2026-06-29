@@ -1,7 +1,7 @@
 import { user, url, error } from '$lib'
 import { get } from 'svelte/store'
 import { env } from '$env/dynamic/public'
-import { browser } from '$app/environment'
+import { browser, dev } from '$app/environment'
 
 export async function resetUser(){
     user.set(null)
@@ -14,7 +14,8 @@ export async function fetchAPI(
     method: string,
     data?: any
 ): Promise<any> {
-    let API_URL: string = (browser && localStorage.getItem("api_url")) || env.PUBLIC_API_URL || get(url) || "http://localhost:3000"
+    const defaultAPI = dev ? "http://localhost:3000" : "https://tasker-api.orizenh.com"
+    let API_URL: string = (browser && localStorage.getItem("api_url")) || env.PUBLIC_API_URL || get(url) || defaultAPI
     if (!browser) {
         if (API_URL.startsWith("http://localhost:3000")) {
             API_URL = API_URL.replace("http://localhost:3000", "http://api:3000")
